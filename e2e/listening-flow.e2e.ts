@@ -21,8 +21,8 @@ test("cadastro até estatísticas de uma escuta no celular", async ({ page }) =>
     ).toBeVisible();
     await page.getByRole("link", { name: "Biblioteca", exact: true }).click();
     await page
-      .getByRole("main")
-      .getByRole("link", { name: "Discover" })
+      .getByRole("navigation", { name: "Navegação principal", exact: true })
+      .getByRole("link", { name: "Discover", exact: true })
       .click();
     await expect(
       page.getByRole("button", { name: /Lançamento de Teste/ }),
@@ -40,7 +40,7 @@ test("cadastro até estatísticas de uma escuta no celular", async ({ page }) =>
     await listened.tap();
     await expect(listened).toHaveAttribute("aria-pressed", "true");
     await expect(
-      page.getByRole("button", { name: "Remover da biblioteca" }),
+      page.getByRole("region", { name: "Nota e resenha", exact: true }),
     ).toBeVisible();
   });
 
