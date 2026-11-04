@@ -44,7 +44,6 @@ export function LibraryForm({
             aria-label="Remover da biblioteca"
             aria-expanded={removing}
             aria-controls="album-library-form"
-            title="Remover da biblioteca"
             disabled={pending}
             onClick={() => setRemoving(!removing)}
             className="grid size-touch shrink-0 place-items-center rounded-lg text-muted hover:bg-control hover:text-danger disabled:opacity-50"
@@ -57,7 +56,7 @@ export function LibraryForm({
               strokeWidth="1.75"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="size-5"
+              className="size-4"
             >
               <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5m4-5v5" />
             </svg>

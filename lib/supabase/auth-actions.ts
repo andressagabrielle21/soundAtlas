@@ -106,3 +106,11 @@ export async function signUp(
       "Confira sua caixa de entrada. Se o cadastro estiver pendente, você receberá um link de confirmação.",
   };
 }
+
+export async function signOut(): Promise<string> {
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signOut({ scope: "local" });
+  if (error) return "Não foi possível sair. Tente novamente.";
+
+  redirect("/entrar");
+}

@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { Statistics } from "./statistics";
+import { SignOutForm } from "./sign-out-form";
 import { createClient } from "../../lib/supabase/server";
 
 type ProfileSummary = {
@@ -86,6 +87,7 @@ export default async function ProfilePage({
           ))}
         </div>
       </section>
+      <SignOutForm />
     </>
   );
 }

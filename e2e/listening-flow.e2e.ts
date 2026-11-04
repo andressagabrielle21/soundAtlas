@@ -90,4 +90,10 @@ test("cadastro até estatísticas de uma escuta no celular", async ({ page }) =>
       .filter({ hasText: "3,5 estrelas" });
     await expect(rating.getByText("1", { exact: true })).toBeVisible();
   });
+  await test.step("Encerrar a sessão", async () => {
+    await page.getByRole("button", { name: "Sair", exact: true }).tap();
+    await expect(page.getByRole("heading", { name: "Entrar" })).toBeVisible();
+    await page.goto("/perfil");
+    await expect(page).toHaveURL(/\/entrar$/);
+  });
 });
