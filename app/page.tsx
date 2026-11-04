@@ -26,6 +26,8 @@ type DiaryLog = {
     external_id: string;
     title: string;
     cover_url: string | null;
+    release_date: string | null;
+    release_year: number | null;
     artist: { name: string } | null;
   };
 };
@@ -50,7 +52,7 @@ export default async function DiaryPage({
   const { data, error } = await supabase
     .from("listen_logs")
     .select(
-      "id,listened_on,rating_at_time,note,album:albums!inner(external_id,title,cover_url,artist:artists(name))",
+      "id,listened_on,rating_at_time,note,album:albums!inner(external_id,title,cover_url,release_date,release_year,artist:artists(name))",
     )
     .eq("user_id", user.id)
     .order("listened_on", { ascending: false })
@@ -109,43 +111,73 @@ export default async function DiaryPage({
             {monthFormat.format(new Date(`${month}-01`))}
           </h2>
           <ul className="mt-2 grid gap-2">
-            {logs.map(({ id, album, listened_on, rating_at_time, note }) => (
-              <li
-                key={id}
-                className="flex items-center gap-3 rounded-xl bg-surface p-3"
-              >
-                <Image
-                  alt=""
-                  width={96}
-                  height={96}
-                  src={
-                    album.cover_url
-                      ? `/album/${album.external_id}/capa`
-                      : "/album-placeholder.svg"
-                  }
-                  className="size-24 shrink-0 rounded-lg object-cover"
-                />
-                <div className="min-w-0 wrap-anywhere">
-                  <Link
-                    href={`/album/${album.external_id}`}
-                    className="inline-flex min-h-touch items-center font-semibold underline"
-                  >
-                    {album.title}
-                  </Link>
-                  <p className="text-sm text-muted">
-                    {album.artist?.name ?? "Artista desconhecido"}
-                  </p>
-                  <p className="text-sm text-muted">
-                    <time dateTime={listened_on}>
-                      {dateFormat.format(new Date(listened_on))}
-                    </time>
-                    {" · "}
-                    {rating_at_time === null
-                      ? "Sem nota na escuta"
-                      : `${ratingFormat.format(rating_at_time)} de 5 estrelas`}
-                  </p>
+            {logs.map(({ id, album, rating_at_time, note }) => (
+              <li key={id} className="enter-content rounded-xl bg-surface p-3">
+                <Link
+                  href={`/album/${album.external_id}`}
+                  className="flex items-center gap-3 rounded-lg"
+                >
+                  <Image
+                    alt=""
+                    width={96}
+                    height={96}
+                    src={
+                      album.cover_url
+                        ? `/album/${album.external_id}/capa`
+                        : "/album-placeholder.svg"
+                    }
+                    className="size-24 shrink-0 rounded-lg object-cover"
+                  />
+                  <div className="min-w-0 wrap-anywhere">
+                    <p className="font-semibold underline">{album.title}</p>
+                    <p className="text-sm text-muted">
+                      {album.artist?.name ?? "Artista desconhecido"}
+                    </p>
+                    <p className="mt-1 text-sm text-muted">
+                      {album.release_date ? (
+                        <>
+                          Lançamento:{" "}
+                          <time dateTime={album.release_date}>
+                            {dateFormat.format(new Date(album.release_date))}
+                          </time>
+                        </>
+                      ) : album.release_year ? (
+                        <>Lançamento: {album.release_year}</>
+                      ) : (
+                        "Lançamento desconhecido"
+                      )}
+                    </p>
+                  </div>
+                </Link>
+                <div className="mt-3 border-t border-outline pt-3">
+                  {rating_at_time === null ? (
+                    <p className="text-sm text-muted">Sem nota na escuta</p>
+                  ) : (
+                    <p className="flex flex-wrap items-center gap-x-2 font-semibold">
+                      <span
+                        aria-hidden="true"
+                        className="relative text-2xl leading-none text-muted"
+                      >
+                        ☆☆☆☆☆
+                        <span
+                          className="absolute inset-0 text-accent"
+                          style={{
+                            clipPath: `inset(0 ${100 - rating_at_time * 20}% 0 0)`,
+                          }}
+                        >
+                          ★★★★★
+                        </span>
+                      </span>
+                      <span>
+                        {ratingFormat.format(rating_at_time)}
+                        <span className="sr-only"> de 5 estrelas</span>
+                      </span>
+                    </p>
+                  )}
                   {note?.trim() && (
-                    <p className="mt-2 line-clamp-2 text-sm">{note}</p>
+                    <p className="mt-2 whitespace-pre-wrap wrap-anywhere">
+                      {note}
+                    </p>
                   )}
                 </div>
               </li>

@@ -22,10 +22,9 @@ test("cadastro até estatísticas de uma escuta no celular", async ({ page }) =>
       .fill("Horizonte de Tes");
     await page.getByRole("button", { name: new RegExp(title) }).click();
     await expect(page.getByRole("heading", { name: title })).toBeVisible();
-    await page
-      .getByRole("combobox", { name: "Status" })
-      .selectOption("listened");
-    await page.getByRole("button", { name: "Salvar status" }).click();
+    const listened = page.getByRole("button", { name: "Já ouvi", exact: true });
+    await listened.tap();
+    await expect(listened).toHaveAttribute("aria-pressed", "true");
     await expect(
       page.getByRole("button", { name: "Remover da biblioteca" }),
     ).toBeVisible();
@@ -76,7 +75,9 @@ test("cadastro até estatísticas de uma escuta no celular", async ({ page }) =>
 
   await test.step("Conferir os agrupamentos nas estatísticas", async () => {
     await page.getByRole("link", { name: "Perfil", exact: true }).click();
-    await page.getByRole("link", { name: "Estatísticas", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Estatísticas", exact: true }),
+    ).toBeVisible();
     await page.getByRole("link", { name: "Tudo", exact: true }).click();
     await expect(
       page.getByRole("link", { name: "Tudo", exact: true }),

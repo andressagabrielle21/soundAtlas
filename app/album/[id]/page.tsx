@@ -72,24 +72,18 @@ export default async function AlbumPage({
         </p>
       </header>
 
-      <ListenSheet
-        key={`listen-sheet-${album.id}`}
-        albumId={album.id}
-        title={album.title}
-        openOnLoad={registrar === "1"}
-      />
-
-      {library.error ? (
-        <p role="alert" className="mb-panel">
-          Não foi possível carregar o status da biblioteca.
-        </p>
-      ) : (
-        <LibraryForm
-          key={status ?? "outside"}
-          status={status}
-          action={updateLibrary.bind(null, album.id, `/album/${id}`)}
+      <LibraryForm
+        status={status}
+        action={updateLibrary.bind(null, album.id, `/album/${id}`)}
+        unavailable={Boolean(library.error)}
+      >
+        <ListenSheet
+          key={`listen-sheet-${album.id}`}
+          albumId={album.id}
+          title={album.title}
+          openOnLoad={registrar === "1"}
         />
-      )}
+      </LibraryForm>
 
       {library.data ? (
         <ReviewForm

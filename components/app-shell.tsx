@@ -22,8 +22,8 @@ export function AppShell({ children }: { children: ReactNode }) {
         tabIndex={-1}
         className={
           isAuthPage
-            ? "mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-gutter py-panel"
-            : "mx-auto w-full max-w-lg flex-1 px-gutter py-panel"
+            ? "enter-content mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-gutter py-panel"
+            : "enter-content mx-auto w-full max-w-lg flex-1 px-gutter py-panel"
         }
       >
         <div className={isAuthPage ? "w-full max-w-sm" : undefined}>

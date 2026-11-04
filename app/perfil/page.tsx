@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { Suspense } from "react";
+import { Statistics } from "./statistics";
 import { createClient } from "../../lib/supabase/server";
 
 type ProfileSummary = {
@@ -11,7 +12,12 @@ const numberFormat = new Intl.NumberFormat("pt-BR", {
   maximumFractionDigits: 2,
 });
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ periodo?: string | string[] }>;
+}) {
+  const { periodo } = await searchParams;
   const client = await createClient();
   const { data, error } = await client.rpc("read_profile_data");
   const summary = data as ProfileSummary | null;
@@ -43,12 +49,25 @@ export default async function ProfilePage() {
           </div>
         </dl>
       )}
-      <Link
-        href="/estatisticas"
-        className="mt-2 inline-flex min-h-touch items-center text-accent underline"
+      <section
+        id="estatisticas"
+        aria-labelledby="stats-title"
+        className="mt-panel scroll-mt-4"
       >
-        Estatísticas
-      </Link>
+        <h2 id="stats-title" className="text-heading font-semibold">
+          Estatísticas
+        </h2>
+        <Suspense
+          key={JSON.stringify(periodo)}
+          fallback={
+            <p role="status" className="mt-panel text-muted">
+              Carregando estatísticas…
+            </p>
+          }
+        >
+          <Statistics periodo={periodo} />
+        </Suspense>
+      </section>
       <section className="mt-4">
         <h2 className="text-lg font-semibold">Exportar meus dados</h2>
         <p className="mt-2 text-muted">

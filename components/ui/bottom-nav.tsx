@@ -21,7 +21,10 @@ export function BottomNav() {
       <ul className="mx-auto grid max-w-lg grid-cols-5 gap-1 py-1">
         {items.flatMap(({ href, label }, index) => {
           const current = pathname === href;
-          const active = current || pathname?.startsWith(`${href}/`);
+          const active =
+            current ||
+            pathname?.startsWith(`${href}/`) ||
+            (href === "/perfil" && pathname === "/estatisticas");
 
           const item = (
             <li key={href}>
@@ -30,8 +33,14 @@ export function BottomNav() {
                 aria-current={
                   current ? "page" : active ? "location" : undefined
                 }
-                className="flex min-h-touch min-w-touch items-center justify-center rounded-lg px-1 text-center text-caption font-semibold text-muted hover:bg-control aria-current:bg-control aria-current:text-accent"
+                className="relative flex min-h-touch min-w-touch items-center justify-center rounded-lg px-1 text-center text-caption font-semibold text-muted hover:bg-control aria-current:bg-control aria-current:text-accent"
               >
+                {active && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-x-2 top-0 h-0.5 rounded-full bg-accent"
+                  />
+                )}
                 {label}
               </Link>
             </li>

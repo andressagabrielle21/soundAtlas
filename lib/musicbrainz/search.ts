@@ -9,6 +9,7 @@ export type Album = {
   title: string;
   artist: string;
   year: number | null;
+  releaseDate?: string;
 };
 
 type ErrorCode =
@@ -80,12 +81,20 @@ function parseAlbums(payload: unknown): Album[] {
     const date = group["first-release-date"];
     const year =
       typeof date === "string" ? /^(\d{4})(?:-|$)/.exec(date)?.[1] : undefined;
+    const releaseDate =
+      typeof date === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+      !date.startsWith("0000") &&
+      new Date(date).toJSON()?.slice(0, 10) === date
+        ? date
+        : undefined;
     albums.push({
       externalId: id,
       primaryArtist,
       title,
       artist,
       year: year ? Number(year) : null,
+      ...(releaseDate ? { releaseDate } : {}),
     });
   }
   return albums;

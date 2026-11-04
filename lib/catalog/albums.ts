@@ -55,6 +55,7 @@ export async function saveAlbum(album: Album) {
       title: album.title,
       artist_id: artistId,
       release_year: album.year,
+      release_date: album.releaseDate ?? null,
       cover_url: hasCover ? coverUrl(album.externalId) : null,
     },
     { onConflict: "external_id", ignoreDuplicates: true },
