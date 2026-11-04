@@ -29,30 +29,34 @@ export default async function ProfilePage({
   const summary = data as ProfileSummary | null;
 
   return (
-    <>
+    <div className="space-y-8">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-heading font-semibold">Perfil</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Perfil</h1>
         <SignOutForm />
       </div>
       {error || !summary ? (
-        <p role="alert" className="mt-2 text-muted">
+        <p role="alert" className="mt-2 text-sm text-muted">
           Não foi possível carregar seu resumo. Tente recarregar a página.
         </p>
       ) : (
-        <dl className="mt-4 space-y-2 rounded-xl bg-surface p-4">
-          <div className="flex justify-between gap-3">
+        <dl className="grid grid-cols-3 gap-2 py-1">
+          <div className="flex min-w-0 flex-col-reverse gap-1">
             <dt>Álbuns na biblioteca</dt>
-            <dd>{numberFormat.format(summary.total_albums)}</dd>
+            <dd className="text-3xl font-medium tracking-tight tabular-nums">
+              {numberFormat.format(summary.total_albums)}
+            </dd>
           </div>
-          <div className="flex justify-between gap-3">
+          <div className="flex min-w-0 flex-col-reverse gap-1">
             <dt>Escutas no diário</dt>
-            <dd>{numberFormat.format(summary.total_listens)}</dd>
+            <dd className="text-3xl font-medium tracking-tight tabular-nums">
+              {numberFormat.format(summary.total_listens)}
+            </dd>
           </div>
-          <div className="flex justify-between gap-3">
+          <div className="flex min-w-0 flex-col-reverse gap-1">
             <dt>Nota média da biblioteca</dt>
-            <dd className="shrink-0">
+            <dd className="text-3xl font-medium tracking-tight tabular-nums">
               {summary.average_rating === null
-                ? "Sem notas"
+                ? "?"
                 : numberFormat.format(summary.average_rating)}
             </dd>
           </div>
@@ -61,9 +65,9 @@ export default async function ProfilePage({
       <section
         id="estatisticas"
         aria-labelledby="stats-title"
-        className="mt-panel scroll-mt-4"
+        className="scroll-mt-6"
       >
-        <h2 id="stats-title" className="text-heading font-semibold">
+        <h2 id="stats-title" className="text-lg font-semibold tracking-tight">
           Estatísticas
         </h2>
         <Suspense key={JSON.stringify(periodo)} fallback={<LoadingSpinner />}>
@@ -73,18 +77,23 @@ export default async function ProfilePage({
       <section
         id="diario"
         aria-labelledby="diary-title"
-        className="mt-panel scroll-mt-4"
+        className="scroll-mt-6"
       >
-        <h2 id="diary-title" className="text-heading font-semibold">
+        <h2 id="diary-title" className="text-lg font-semibold tracking-tight">
           Diário
         </h2>
         <Suspense key={JSON.stringify(pagina)} fallback={<LoadingSpinner />}>
           <Diary pagina={pagina} periodo={periodo} />
         </Suspense>
       </section>
-      <section className="mt-4">
-        <h2 className="text-lg font-semibold">Exportar meus dados</h2>
-        <p className="mt-2 text-muted">
+      <section
+        aria-labelledby="export-title"
+        className="rounded-xl bg-surface p-4"
+      >
+        <h2 id="export-title" className="text-base font-semibold">
+          Seus dados
+        </h2>
+        <p className="mt-2 text-sm text-muted">
           Baixe sua biblioteca e seu diário em um único arquivo.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -93,13 +102,13 @@ export default async function ProfilePage({
               key={format}
               href={`/api/export?format=${format}`}
               download
-              className="inline-flex min-h-touch items-center rounded-lg bg-surface px-3 text-accent"
+              className="inline-flex min-h-touch flex-1 items-center justify-center rounded-lg bg-control px-3 text-sm font-medium text-ink hover:text-accent"
             >
               Baixar {format.toUpperCase()}
             </a>
           ))}
         </div>
       </section>
-    </>
+    </div>
   );
 }

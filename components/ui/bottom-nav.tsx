@@ -16,7 +16,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="sticky bottom-0 bg-surface px-1 sm:px-gutter pb-[env(safe-area-inset-bottom)]"
+      className="sticky bottom-0 z-30 isolate bg-surface px-1 pb-[env(safe-area-inset-bottom)] sm:px-gutter"
     >
       <ul className="mx-auto grid max-w-lg grid-cols-5 gap-0 py-1">
         {items.flatMap(({ href, label }, index) => {
@@ -48,11 +48,14 @@ export function BottomNav() {
           return index === 1
             ? [
                 item,
-                <li key="registrar" className="flex justify-center">
+                <li
+                  key="registrar"
+                  className="relative flex justify-center before:absolute before:-top-5 before:size-[72px] before:rounded-full before:bg-surface before:content-['']"
+                >
                   <Link
                     href="/buscar?registrar=1"
                     aria-label="Registrar escuta"
-                    className="flex size-touch items-center justify-center rounded-full bg-accent text-2xl font-semibold text-on-accent"
+                    className="relative -mt-3 flex size-14 items-center justify-center rounded-full bg-accent text-3xl font-normal text-on-accent hover:bg-accent-hover"
                   >
                     +
                   </Link>

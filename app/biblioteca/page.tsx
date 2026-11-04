@@ -33,7 +33,7 @@ export default async function LibraryPage({
   if (params.aba === "discover") {
     return (
       <>
-        <h1 className="text-3xl font-bold tracking-tight">Biblioteca</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Biblioteca</h1>
         <Link
           href="/biblioteca"
           className="my-3 inline-flex min-h-touch items-center text-accent"
@@ -134,11 +134,11 @@ export default async function LibraryPage({
   return (
     <div className="relative">
       <div className="flex min-h-touch items-center justify-between gap-2 pr-14">
-        <h1 className="text-3xl font-bold tracking-tight">Biblioteca</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Biblioteca</h1>
       </div>
       <nav
         aria-label="Status da biblioteca"
-        className="mt-3 flex w-full justify-center gap-1"
+        className="mt-4 flex w-full justify-center gap-1 rounded-xl bg-surface p-1"
       >
         {tabs.map((tab) => {
           const next = new URLSearchParams(query);
@@ -149,7 +149,7 @@ export default async function LibraryPage({
               key={tab.value}
               href={`/biblioteca?${next}`}
               aria-current={current ? "page" : undefined}
-              className={`${linkClass} min-w-0 flex-1 justify-center ${current ? "bg-accent text-on-accent" : "bg-surface"}`}
+              className={`${linkClass} min-w-0 flex-1 justify-center px-1 text-sm ${current ? "bg-control font-semibold text-ink" : "text-muted hover:text-ink"}`}
             >
               {tab.label}
             </Link>
@@ -157,7 +157,7 @@ export default async function LibraryPage({
         })}
       </nav>
 
-      <details key={query.toString()} className="mb-panel">
+      <details key={query.toString()} className="mb-4">
         <summary className="absolute top-0 right-0 grid size-touch cursor-pointer list-none place-items-center rounded-lg text-muted hover:bg-control [&::-webkit-details-marker]:hidden">
           <svg
             aria-hidden="true"
@@ -176,7 +176,7 @@ export default async function LibraryPage({
         <form
           action="/biblioteca"
           method="get"
-          className="mt-3 grid grid-cols-2 gap-2"
+          className="mt-3 grid grid-cols-2 gap-3 rounded-xl bg-surface p-3"
         >
           <input type="hidden" name="status" value={status} />
           <label className="min-w-0">
@@ -243,11 +243,23 @@ export default async function LibraryPage({
         </form>
       </details>
 
+      <div className="mb-3 flex items-center justify-between gap-2 text-sm text-muted">
+        <p>
+          {results.length} {results.length === 1 ? "?lbum" : "?lbuns"}
+        </p>
+        <p>
+          {sort === "rating"
+            ? "Por nota"
+            : sort === "title"
+              ? "Por t?tulo"
+              : "Mais recentes"}
+        </p>
+      </div>
       {results.length ? (
         <ul
           className={
             view === "grid"
-              ? "grid grid-cols-2 gap-3 sm:grid-cols-3"
+              ? "grid grid-cols-2 items-start gap-x-3 gap-y-5 sm:grid-cols-3"
               : "grid gap-2"
           }
         >
@@ -255,7 +267,7 @@ export default async function LibraryPage({
             <li key={album.external_id} className="min-w-0">
               <Link
                 href={`/album/${album.external_id}`}
-                className={`album-tile flex h-full gap-2 ${view === "grid" ? "flex-col" : "items-center p-2"}`}
+                className={`album-tile group flex gap-2 ${view === "grid" ? "flex-col" : "items-center gap-3 rounded-xl bg-surface p-2"}`}
               >
                 <Image
                   alt=""
@@ -271,14 +283,14 @@ export default async function LibraryPage({
                       ? `/album/${album.external_id}/capa`
                       : "/album-placeholder.svg"
                   }
-                  className={`aspect-square rounded-lg object-cover ${view === "grid" ? "w-full" : "w-14 shrink-0"}`}
+                  className={`aspect-square rounded-lg bg-surface object-cover ${view === "grid" ? "w-full" : "w-14 shrink-0"}`}
                 />
-                <div className="min-w-0 wrap-anywhere">
+                <div className="min-w-0 flex-1 space-y-0.5 wrap-anywhere">
                   <p
                     className={
                       view === "grid"
-                        ? "flex h-10 items-center text-sm leading-5 font-semibold"
-                        : "font-semibold"
+                        ? "text-sm leading-[1.125rem] font-semibold group-hover:text-accent"
+                        : "text-sm leading-5 font-semibold group-hover:text-accent"
                     }
                   >
                     <span
@@ -287,10 +299,10 @@ export default async function LibraryPage({
                       {album.title}
                     </span>
                   </p>
-                  <p className="truncate text-sm text-muted">
+                  <p className="truncate text-caption text-muted">
                     {album.artist?.name ?? "Artista desconhecido"}
                   </p>
-                  <p className="text-sm text-muted">
+                  <p className="text-caption leading-4 text-muted">
                     {rating === null ? (
                       "Sem nota"
                     ) : (
@@ -342,7 +354,7 @@ export default async function LibraryPage({
               Anterior
             </Link>
           )}
-          <span className="text-sm text-muted">
+          <span className="text-caption leading-4 text-muted">
             Página {page} de {pageCount}
           </span>
           {page < pageCount && (

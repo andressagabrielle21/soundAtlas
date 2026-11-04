@@ -29,14 +29,14 @@ function BarChart({
   const max = rows.reduce((highest, [, count]) => Math.max(highest, count), 1);
 
   return (
-    <section className="min-w-0 rounded-xl bg-surface p-4">
-      <h3 className="text-lg font-semibold">{title}</h3>
+    <section className="min-w-0 rounded-xl bg-surface p-3 sm:p-4">
+      <h3 className="text-sm font-semibold">{title}</h3>
       {rows.length === 0 ? (
         <p className="mt-2 text-muted">
           Sem dados para este gráfico no período.
         </p>
       ) : (
-        <ul className="mt-4 space-y-3" role="list">
+        <ul className="mt-3 space-y-2 text-sm" role="list">
           {rows.map(([key, count]) => {
             const content = (
               <>
@@ -46,7 +46,7 @@ function BarChart({
                 </div>
                 <div
                   aria-hidden="true"
-                  className="mt-1 h-2 rounded-full bg-white/10"
+                  className="mt-1 h-1 rounded-full bg-control"
                 >
                   <div
                     className="h-full rounded-full bg-accent"
@@ -64,7 +64,7 @@ function BarChart({
                       status: "listened",
                       [libraryFilter]: key,
                     })}`}
-                    className="flex min-h-touch flex-col justify-center rounded py-1 text-accent underline underline-offset-2"
+                    className="flex min-h-touch flex-col justify-center rounded py-1 text-ink hover:text-accent"
                   >
                     {content}
                   </Link>
@@ -90,14 +90,14 @@ export async function Statistics({ periodo }: { periodo?: string | string[] }) {
     <>
       <nav
         aria-label="Período das estatísticas"
-        className="my-4 grid grid-cols-2 gap-2 min-[400px]:grid-cols-4"
+        className="my-3 grid grid-cols-2 gap-1 rounded-xl bg-surface p-1 min-[400px]:grid-cols-4"
       >
         {Object.entries(periods).map(([key, label]) => (
           <Link
             key={key}
             href={`/perfil?periodo=${key}#estatisticas`}
             aria-current={period === key ? "page" : undefined}
-            className="flex min-h-touch items-center justify-center rounded-lg bg-surface px-2 text-center aria-[current=page]:bg-control aria-[current=page]:font-semibold aria-[current=page]:text-accent"
+            className="flex min-h-touch items-center justify-center rounded-lg px-2 text-center text-sm text-muted aria-[current=page]:bg-control aria-[current=page]:font-semibold aria-[current=page]:text-accent"
           >
             {label}
           </Link>
@@ -110,7 +110,7 @@ export async function Statistics({ periodo }: { periodo?: string | string[] }) {
         </p>
       ) : Object.keys(stats.by_month).length === 0 ? (
         <div className="rounded-xl bg-surface p-4">
-          <h3 className="text-lg font-semibold">
+          <h3 className="text-sm font-semibold">
             Nenhuma escuta neste período
           </h3>
           <p className="mt-2 text-muted">
@@ -125,7 +125,7 @@ export async function Statistics({ periodo }: { periodo?: string | string[] }) {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:grid-cols-2">
           <BarChart
             title="Escutas por mês"
             rows={Object.entries(stats.by_month).sort(([a], [b]) =>

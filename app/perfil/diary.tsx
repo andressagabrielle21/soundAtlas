@@ -106,16 +106,16 @@ export async function Diary({
         <section
           key={month}
           aria-labelledby={`diary-${month}`}
-          className="mt-panel"
+          className="mt-4"
         >
           <h3
             id={`diary-${month}`}
-            className="text-lg font-semibold capitalize"
+            className="text-sm font-medium text-muted capitalize"
           >
             {monthFormat.format(new Date(`${month}-01`))}
           </h3>
           <ul className="mt-2 grid gap-2">
-            {logs.map(({ id, album, rating_at_time, note }) => (
+            {logs.map(({ id, album, listened_on, rating_at_time, note }) => (
               <li key={id} className="enter-content rounded-xl bg-surface p-3">
                 <Link
                   href={`/album/${album.external_id}`}
@@ -123,21 +123,23 @@ export async function Diary({
                 >
                   <Image
                     alt=""
-                    width={96}
-                    height={96}
+                    width={64}
+                    height={64}
                     src={
                       album.cover_url
                         ? `/album/${album.external_id}/capa`
                         : "/album-placeholder.svg"
                     }
-                    className="size-24 shrink-0 rounded-lg object-cover"
+                    className="size-16 shrink-0 rounded-lg object-cover"
                   />
-                  <div className="min-w-0 wrap-anywhere">
-                    <p className="font-semibold text-lg">{album.title}</p>
-                    <p className="text-sm text-muted">
+                  <div className="min-w-0 flex-1 wrap-anywhere">
+                    <p className="text-sm leading-5 font-semibold">
+                      {album.title}
+                    </p>
+                    <p className="text-caption text-muted">
                       {album.artist?.name ?? "Artista desconhecido"}
                     </p>
-                    <p className="mt-1 text-sm text-muted">
+                    <p className="mt-0.5 text-caption text-muted">
                       {album.release_date ? (
                         <>
                           Lançamento:{" "}
@@ -153,26 +155,36 @@ export async function Diary({
                     </p>
                   </div>
                 </Link>
-                <div className="mt-3">
-                  {rating_at_time === null ? (
-                    <p className="text-sm text-muted">Sem nota na escuta</p>
-                  ) : (
-                    <p className="flex flex-wrap items-center gap-x-2 font-semibold">
-                      <span className="text-2xl">
-                        <RatingStars rating={rating_at_time} />
-                      </span>
-                      <span>
-                        {ratingFormat.format(rating_at_time)}
-                        <span className="sr-only"> de 5 estrelas</span>
-                      </span>
-                    </p>
-                  )}
-                  {note?.trim() && (
-                    <p className="mt-2 whitespace-pre-wrap wrap-anywhere">
-                      {note}
-                    </p>
-                  )}
+                <div className="mt-3 flex items-center justify-between gap-2">
+                  <time
+                    dateTime={listened_on}
+                    className="text-caption text-muted"
+                  >
+                    {dateFormat.format(new Date(listened_on))}
+                  </time>
+                  <div>
+                    {rating_at_time === null ? (
+                      <p className="text-caption text-muted">
+                        Sem nota na escuta
+                      </p>
+                    ) : (
+                      <p className="flex flex-wrap items-center gap-x-2 font-semibold">
+                        <span className="text-base text-accent">
+                          <RatingStars rating={rating_at_time} />
+                        </span>
+                        <span>
+                          {ratingFormat.format(rating_at_time)}
+                          <span className="sr-only"> de 5 estrelas</span>
+                        </span>
+                      </p>
+                    )}
+                  </div>
                 </div>
+                {note?.trim() && (
+                  <p className="mt-2 whitespace-pre-wrap wrap-anywhere">
+                    {note}
+                  </p>
+                )}
               </li>
             ))}
           </ul>
@@ -188,7 +200,7 @@ export async function Diary({
               Anterior
             </Link>
           )}
-          <span className="text-sm text-muted">Página {page}</span>
+          <span className="text-caption text-muted">Página {page}</span>
           {data.length > pageSize && (
             <Link className={linkClass} href={diaryHref(page + 1)}>
               Próxima
