@@ -70,7 +70,7 @@ describe("searchAlbums", () => {
       "https://musicbrainz.org/ws/2/release-group?",
     );
     expect(new URL(String(url)).searchParams.get("query")).toBe(
-      String.raw`(releasegroup:"A \"B\" + C" OR artist:"A \"B\" + C" OR releasegroup:(a AND b AND c*) OR artist:(a AND b AND c*)) AND primarytype:Album`,
+      String.raw`(releasegroup:"A \"B\" + C" OR artist:"A \"B\" + C" OR releasegroup:(a AND b AND c*) OR artistname:(a AND b AND c*)) AND primarytype:Album`,
     );
     expect(new Headers(options?.headers).get("User-Agent")).toBe(
       "SoundAtlas/0.1 (contact@example.com)",
@@ -88,7 +88,21 @@ describe("searchAlbums", () => {
       ).searchParams.get("query");
       const [first, last] = text.toLowerCase().split(" ");
       expect(query).toContain(`releasegroup:(${first} AND ${last}*)`);
-      expect(query).toContain(`artist:(${first} AND ${last}*)`);
+      expect(query).toContain(`artistname:(${first} AND ${last}*)`);
+    },
+  );
+
+  it.each(["radio", "weyes", "blo"])(
+    "searches a partial artist name with the tokenized field: %s",
+    async (text) => {
+      fetchMock.mockResolvedValue(Response.json({ "release-groups": [] }));
+      const { searchAlbums } = await import("./search");
+      await searchAlbums(text);
+      const query = new URL(
+        String(fetchMock.mock.calls[0][0]),
+      ).searchParams.get("query");
+      expect(query).toContain(`artistname:(${text}*)`);
+      expect(query).not.toContain(`artist:(${text}*)`);
     },
   );
 

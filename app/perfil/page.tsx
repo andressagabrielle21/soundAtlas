@@ -40,19 +40,19 @@ export default async function ProfilePage({
         </p>
       ) : (
         <dl className="grid grid-cols-3 gap-2 py-1">
-          <div className="flex min-w-0 flex-col-reverse gap-1">
+          <div className="flex items-center justify-around min-w-0 flex-col-reverse gap-1">
             <dt>Álbuns na biblioteca</dt>
             <dd className="text-3xl font-medium tracking-tight tabular-nums">
               {numberFormat.format(summary.total_albums)}
             </dd>
           </div>
-          <div className="flex min-w-0 flex-col-reverse gap-1">
+          <div className="flex items-center justify-around min-w-0 flex-col-reverse gap-1">
             <dt>Escutas no diário</dt>
             <dd className="text-3xl font-medium tracking-tight tabular-nums">
               {numberFormat.format(summary.total_listens)}
             </dd>
           </div>
-          <div className="flex min-w-0 flex-col-reverse gap-1">
+          <div className="flex items-center justify-around min-w-0 flex-col-reverse gap-1">
             <dt>Nota média da biblioteca</dt>
             <dd className="text-3xl font-medium tracking-tight tabular-nums">
               {summary.average_rating === null

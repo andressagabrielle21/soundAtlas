@@ -22,17 +22,19 @@ export function AppShell({ children }: { children: ReactNode }) {
         tabIndex={-1}
         className={
           isAuthPage
-            ? "mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-gutter py-panel"
+            ? "mx-auto flex w-full max-w-lg flex-1 flex-col items-center justify-center px-6 py-10 sm:px-8 sm:py-16"
             : "mx-auto w-full max-w-lg flex-1 px-gutter py-panel"
         }
       >
         <div className={isAuthPage ? "w-full max-w-sm" : undefined}>
-          <header className={isAuthPage ? "mb-panel text-center" : "mb-panel"}>
+          <header className={isAuthPage ? "mb-10" : "mb-panel"}>
             <p
               className={
-                largeBrand
-                  ? "text-4xl font-bold tracking-tight text-accent"
-                  : "text-heading font-semibold text-accent"
+                isAuthPage
+                  ? "text-lg font-semibold tracking-tight text-accent"
+                  : largeBrand
+                    ? "text-4xl font-bold tracking-tight text-accent"
+                    : "text-heading font-semibold text-accent"
               }
             >
               SoundAtlas

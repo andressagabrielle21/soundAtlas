@@ -173,7 +173,7 @@ export async function searchAlbums(text: string): Promise<Album[]> {
     .map((word, index) => (index === words.length - 1 ? `${word}*` : word))
     .join(" AND ");
   const partial = prefix
-    ? ` OR releasegroup:(${prefix}) OR artist:(${prefix})`
+    ? ` OR releasegroup:(${prefix}) OR artistname:(${prefix})`
     : "";
   const url = new URL("https://musicbrainz.org/ws/2/release-group");
   url.searchParams.set(
