@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
+import { LoadingSpinner } from "./ui/loading-spinner";
 import { Button } from "./ui/button";
 import { Sheet } from "./ui/sheet";
 import { ListenForm } from "./listen-form";
@@ -66,16 +67,29 @@ export function ListenSheet({
   }
 
   return (
-    <section className="mb-panel">
+    <div className="shrink-0">
       <Button
         onClick={() => {
           setHistory(undefined);
           setSaved(false);
           setOpen(true);
         }}
+        variant="secondary"
+        className="size-touch p-0"
+        aria-label="Registrar escuta"
         aria-haspopup="dialog"
       >
-        Registrar escuta
+        <svg
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          className="size-6"
+        >
+          <path d="M12 5v14M5 12h14" />
+        </svg>
       </Button>
       {saved && (
         <p role="status" className="mt-2">
@@ -93,7 +107,7 @@ export function ListenSheet({
           <>
             <p className="mb-gutter font-semibold">{title}</p>
             {!history ? (
-              <p role="status">Consultando escutas anteriores…</p>
+              <LoadingSpinner />
             ) : "error" in history ? (
               <>
                 <p role="alert">{history.error}</p>
@@ -122,6 +136,6 @@ export function ListenSheet({
           </>
         )}
       </Sheet>
-    </section>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingSpinner } from "../../components/ui/loading-spinner";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
@@ -90,6 +91,7 @@ export function SearchForm({
           {albumError}
         </p>
       )}
+      {loading && <LoadingSpinner />}
       <div role="status" className="text-muted">
         {loading && "Buscando álbuns…"}
         {current?.albums?.length === 0 && "Nenhum álbum encontrado."}

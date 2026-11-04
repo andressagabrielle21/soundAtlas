@@ -1,7 +1,5 @@
-export default function AlbumLoading() {
-  return (
-    <p role="status" className="text-muted">
-      Carregando álbum…
-    </p>
-  );
+import { LoadingSpinner } from "../../../components/ui/loading-spinner";
+
+export default function Loading() {
+  return <LoadingSpinner />;
 }

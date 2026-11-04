@@ -75,34 +75,37 @@ export default async function AlbumPage({
           preload
           className="mx-auto mb-panel aspect-square h-auto max-w-full rounded-xl object-cover"
         />
-        <h1 className="text-2xl font-semibold">{album.title}</h1>
-        <p className="mt-2 text-muted">
-          {artist?.name ?? "Artista desconhecido"} ·{" "}
-          {album.release_year ?? "Ano desconhecido"}
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold">{album.title}</h1>
+            <p className="mt-2 text-muted">
+              {artist?.name ?? "Artista desconhecido"} ·{" "}
+              {album.release_year ?? "Ano desconhecido"}
+            </p>
+          </div>
+          <ListenSheet
+            key={`listen-sheet-${album.id}`}
+            albumId={album.id}
+            title={album.title}
+            openOnLoad={registrar === "1"}
+          >
+            {hasListens && review && (
+              <details className="mt-panel">
+                <summary className="flex min-h-touch cursor-pointer items-center text-accent">
+                  Nota e resenha do álbum
+                </summary>
+                {review}
+              </details>
+            )}
+          </ListenSheet>
+        </div>
       </header>
 
       <LibraryForm
         status={status}
         action={updateLibrary.bind(null, album.id, `/album/${id}`)}
         unavailable={Boolean(library.error)}
-      >
-        <ListenSheet
-          key={`listen-sheet-${album.id}`}
-          albumId={album.id}
-          title={album.title}
-          openOnLoad={registrar === "1"}
-        >
-          {hasListens && review && (
-            <details className="mt-panel">
-              <summary className="flex min-h-touch cursor-pointer items-center text-accent">
-                Nota e resenha do álbum
-              </summary>
-              {review}
-            </details>
-          )}
-        </ListenSheet>
-      </LibraryForm>
+      />
 
       {!hasListens && review}
       {!hasListens && !library.data && !library.error && (

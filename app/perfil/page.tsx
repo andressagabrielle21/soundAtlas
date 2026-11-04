@@ -1,3 +1,4 @@
+import { LoadingSpinner } from "../../components/ui/loading-spinner";
 import { Suspense } from "react";
 import { Diary } from "./diary";
 import { Statistics } from "./statistics";
@@ -65,14 +66,7 @@ export default async function ProfilePage({
         <h2 id="stats-title" className="text-heading font-semibold">
           Estatísticas
         </h2>
-        <Suspense
-          key={JSON.stringify(periodo)}
-          fallback={
-            <p role="status" className="mt-panel text-muted">
-              Carregando estatísticas…
-            </p>
-          }
-        >
+        <Suspense key={JSON.stringify(periodo)} fallback={<LoadingSpinner />}>
           <Statistics periodo={periodo} />
         </Suspense>
       </section>
@@ -84,14 +78,7 @@ export default async function ProfilePage({
         <h2 id="diary-title" className="text-heading font-semibold">
           Diário
         </h2>
-        <Suspense
-          key={JSON.stringify(pagina)}
-          fallback={
-            <p role="status" className="mt-2 text-muted">
-              Carregando diário…
-            </p>
-          }
-        >
+        <Suspense key={JSON.stringify(pagina)} fallback={<LoadingSpinner />}>
           <Diary pagina={pagina} periodo={periodo} />
         </Suspense>
       </section>

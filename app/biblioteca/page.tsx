@@ -1,3 +1,4 @@
+import { LoadingSpinner } from "../../components/ui/loading-spinner";
 import { Suspense } from "react";
 import { Releases } from "../discover/releases";
 import { RatingStars } from "../../components/ui/rating-stars";
@@ -39,7 +40,7 @@ export default async function LibraryPage({
         >
           Minha coleção
         </Link>
-        <Suspense fallback={<p role="status">Carregando lançamentos…</p>}>
+        <Suspense fallback={<LoadingSpinner />}>
           <Releases fromLibrary failed={params.erro === "album"} />
         </Suspense>
       </>
@@ -131,19 +132,13 @@ export default async function LibraryPage({
     `/biblioteca?${new URLSearchParams({ ...Object.fromEntries(query), pagina: String(target) })}`;
 
   return (
-    <>
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="relative">
+      <div className="flex min-h-touch items-center justify-between gap-2 pr-14">
         <h1 className="text-3xl font-bold tracking-tight">Biblioteca</h1>
-        <Link
-          href="/biblioteca?aba=discover"
-          className="inline-flex min-h-touch items-center px-2 text-sm font-semibold text-accent"
-        >
-          Discover
-        </Link>
       </div>
       <nav
         aria-label="Status da biblioteca"
-        className="mt-3 flex flex-wrap gap-1"
+        className="mt-3 flex w-full justify-center gap-1"
       >
         {tabs.map((tab) => {
           const next = new URLSearchParams(query);
@@ -154,7 +149,7 @@ export default async function LibraryPage({
               key={tab.value}
               href={`/biblioteca?${next}`}
               aria-current={current ? "page" : undefined}
-              className={`${linkClass} ${current ? "bg-accent text-on-accent" : "bg-surface"}`}
+              className={`${linkClass} min-w-0 flex-1 justify-center ${current ? "bg-accent text-on-accent" : "bg-surface"}`}
             >
               {tab.label}
             </Link>
@@ -162,8 +157,8 @@ export default async function LibraryPage({
         })}
       </nav>
 
-      <details key={query.toString()} className="my-panel">
-        <summary className="ml-auto grid size-touch cursor-pointer list-none place-items-center rounded-lg text-muted hover:bg-control [&::-webkit-details-marker]:hidden">
+      <details key={query.toString()} className="mb-panel">
+        <summary className="absolute top-0 right-0 grid size-touch cursor-pointer list-none place-items-center rounded-lg text-muted hover:bg-control [&::-webkit-details-marker]:hidden">
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
@@ -282,11 +277,15 @@ export default async function LibraryPage({
                   <p
                     className={
                       view === "grid"
-                        ? "line-clamp-2 h-10 text-sm leading-5 font-semibold"
+                        ? "flex h-10 items-center text-sm leading-5 font-semibold"
                         : "font-semibold"
                     }
                   >
-                    {album.title}
+                    <span
+                      className={view === "grid" ? "line-clamp-2" : undefined}
+                    >
+                      {album.title}
+                    </span>
                   </p>
                   <p className="truncate text-sm text-muted">
                     {album.artist?.name ?? "Artista desconhecido"}
@@ -356,6 +355,6 @@ export default async function LibraryPage({
           )}
         </nav>
       )}
-    </>
+    </div>
   );
 }

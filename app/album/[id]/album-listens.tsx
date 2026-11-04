@@ -104,8 +104,11 @@ export function AlbumListens({
       ) : (
         <ul className="mt-2 grid gap-2">
           {logs.map((log) => (
-            <li key={log.id} className="rounded-lg bg-surface p-gutter">
-              <p>
+            <li
+              key={log.id}
+              className="relative rounded-lg bg-surface p-gutter"
+            >
+              <p className="min-h-touch pr-24">
                 <time dateTime={log.listened_on}>
                   {dateFormat.format(new Date(log.listened_on))}
                 </time>
@@ -126,7 +129,7 @@ export function AlbumListens({
                   {log.note}
                 </p>
               )}
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="absolute top-2 right-2 flex gap-1">
                 <button
                   type="button"
                   aria-label="Editar escuta"
