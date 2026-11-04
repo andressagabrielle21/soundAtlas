@@ -1,3 +1,4 @@
+import { RatingStars } from "../components/ui/rating-stars";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -154,19 +155,8 @@ export default async function DiaryPage({
                     <p className="text-sm text-muted">Sem nota na escuta</p>
                   ) : (
                     <p className="flex flex-wrap items-center gap-x-2 font-semibold">
-                      <span
-                        aria-hidden="true"
-                        className="relative text-2xl leading-none text-muted"
-                      >
-                        ☆☆☆☆☆
-                        <span
-                          className="absolute inset-0 text-accent"
-                          style={{
-                            clipPath: `inset(0 ${100 - rating_at_time * 20}% 0 0)`,
-                          }}
-                        >
-                          ★★★★★
-                        </span>
+                      <span className="text-2xl">
+                        <RatingStars rating={rating_at_time} />
                       </span>
                       <span>
                         {ratingFormat.format(rating_at_time)}

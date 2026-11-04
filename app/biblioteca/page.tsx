@@ -1,3 +1,4 @@
+import { RatingStars } from "../../components/ui/rating-stars";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -28,7 +29,7 @@ export default async function LibraryPage({
 }) {
   const params = await searchParams;
   const status =
-    tabs.find(({ value }) => value === params.status)?.value ?? "want";
+    tabs.find(({ value }) => value === params.status)?.value ?? "listened";
   const genre =
     typeof params.genre === "string" && params.genre ? params.genre : undefined;
   const decade =
@@ -136,75 +137,91 @@ export default async function LibraryPage({
         })}
       </nav>
 
-      <form
-        key={query.toString()}
-        action="/biblioteca"
-        method="get"
-        className="my-panel grid grid-cols-2 gap-2"
-      >
-        <input type="hidden" name="status" value={status} />
-        <label className="min-w-0">
-          Gênero
-          <select
-            name="genre"
-            defaultValue={genre ?? ""}
-            className={selectClass}
+      <details key={query.toString()} className="my-panel">
+        <summary className="flex min-h-touch w-fit cursor-pointer list-none items-center gap-2 rounded-lg border border-outline bg-surface px-3 font-semibold [&::-webkit-details-marker]:hidden">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="size-5"
           >
-            <option value="">Todos</option>
-            {genres.map((value) => (
-              <option key={value}>{value}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Década
-          <select
-            name="decade"
-            defaultValue={decade ?? ""}
-            className={selectClass}
-          >
-            <option value="">Todas</option>
-            {decades.map((value) => (
-              <option key={value} value={value}>
-                Anos {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Nota
-          <select
-            name="rating"
-            defaultValue={rating ?? ""}
-            className={selectClass}
-          >
-            <option value="">Todas</option>
-            {starRatingOptions.flat().map((value) => (
-              <option key={value} value={value}>
-                {numberFormat.format(value)} estrelas
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Ordenação
-          <select name="sort" defaultValue={sort} className={selectClass}>
-            <option value="recent">Recentes</option>
-            <option value="rating">Nota</option>
-            <option value="title">Título</option>
-          </select>
-        </label>
-        <label>
-          Visualização
-          <select name="view" defaultValue={view} className={selectClass}>
-            <option value="grid">Grade</option>
-            <option value="list">Lista</option>
-          </select>
-        </label>
-        <Button type="submit" className="self-end">
-          Aplicar
-        </Button>
-      </form>
+            <path d="M4 6h16M7 12h10m-7 6h4" />
+          </svg>
+          Filtrar
+        </summary>
+        <form
+          action="/biblioteca"
+          method="get"
+          className="mt-3 grid grid-cols-2 gap-2"
+        >
+          <input type="hidden" name="status" value={status} />
+          <label className="min-w-0">
+            Gênero
+            <select
+              name="genre"
+              defaultValue={genre ?? ""}
+              className={selectClass}
+            >
+              <option value="">Todos</option>
+              {genres.map((value) => (
+                <option key={value}>{value}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Década
+            <select
+              name="decade"
+              defaultValue={decade ?? ""}
+              className={selectClass}
+            >
+              <option value="">Todas</option>
+              {decades.map((value) => (
+                <option key={value} value={value}>
+                  Anos {value}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Nota
+            <select
+              name="rating"
+              defaultValue={rating ?? ""}
+              className={selectClass}
+            >
+              <option value="">Todas</option>
+              {starRatingOptions.flat().map((value) => (
+                <option key={value} value={value}>
+                  {numberFormat.format(value)} estrelas
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Ordenação
+            <select name="sort" defaultValue={sort} className={selectClass}>
+              <option value="recent">Recentes</option>
+              <option value="rating">Nota</option>
+              <option value="title">Título</option>
+            </select>
+          </label>
+          <label>
+            Visualização
+            <select name="view" defaultValue={view} className={selectClass}>
+              <option value="grid">Grade</option>
+              <option value="list">Lista</option>
+            </select>
+          </label>
+          <Button type="submit" className="self-end">
+            Aplicar
+          </Button>
+        </form>
+      </details>
 
       {results.length ? (
         <ul
@@ -239,9 +256,16 @@ export default async function LibraryPage({
                 <div className="min-w-0 wrap-anywhere">
                   <p className="font-semibold">{album.title}</p>
                   <p className="text-sm text-muted">
-                    {rating === null
-                      ? "Sem nota"
-                      : `${numberFormat.format(rating)} de 5`}
+                    {rating === null ? (
+                      "Sem nota"
+                    ) : (
+                      <>
+                        <RatingStars rating={rating} />
+                        <span className="sr-only">
+                          {numberFormat.format(rating)} de 5 estrelas
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
               </Link>
