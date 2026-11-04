@@ -133,7 +133,7 @@ export async function Diary({
                     className="size-24 shrink-0 rounded-lg object-cover"
                   />
                   <div className="min-w-0 wrap-anywhere">
-                    <p className="font-semibold underline">{album.title}</p>
+                    <p className="font-semibold text-lg">{album.title}</p>
                     <p className="text-sm text-muted">
                       {album.artist?.name ?? "Artista desconhecido"}
                     </p>
