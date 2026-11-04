@@ -1,0 +1,10 @@
+project_id = "soundatlas"
+
+[db.seed]
+enabled = false
+
+[auth]
+site_url = "http://127.0.0.1:3100"
+
+[auth.email]
+enable_confirmations = false
