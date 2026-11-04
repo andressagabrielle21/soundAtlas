@@ -36,42 +36,42 @@ export function LibraryForm({
 
   return (
     <>
-      <div className="flex items-start gap-2">
-        {children}
-        {status && (
-          <button
-            type="button"
-            aria-label="Remover da biblioteca"
-            aria-expanded={removing}
-            aria-controls="album-library-form"
-            disabled={pending}
-            onClick={() => setRemoving(!removing)}
-            className="grid size-touch shrink-0 place-items-center rounded-lg text-muted hover:bg-control hover:text-danger disabled:opacity-50"
-          >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.75"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="size-4"
-            >
-              <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5m4-5v5" />
-            </svg>
-          </button>
-        )}
-      </div>
+      {children}
       {unavailable ? (
         <p role="alert" className="mb-panel">
           Não foi possível carregar o status da biblioteca.
         </p>
       ) : (
         <section aria-labelledby="album-library" className="mb-panel">
-          <h2 id="album-library" className="text-heading font-semibold">
-            Biblioteca
-          </h2>
+          <div className="flex items-center justify-between">
+            <h2 id="album-library" className="text-heading font-semibold">
+              Biblioteca
+            </h2>
+            {status && (
+              <button
+                type="button"
+                aria-label="Remover da biblioteca"
+                aria-expanded={removing}
+                aria-controls="album-library-form"
+                disabled={pending}
+                onClick={() => setRemoving(!removing)}
+                className="grid size-touch shrink-0 place-items-center rounded-lg text-muted hover:bg-control hover:text-danger disabled:opacity-50"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.75"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="size-4"
+                >
+                  <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5m4-5v5" />
+                </svg>
+              </button>
+            )}
+          </div>
           <form id="album-library-form" action={submit} className="mt-2">
             <fieldset
               disabled={pending}
@@ -83,7 +83,7 @@ export function LibraryForm({
                     O que fazer com os registros do diário?
                     <select
                       name="logs"
-                      className="min-h-touch rounded-lg border border-outline bg-surface px-3"
+                      className="min-h-touch rounded-lg bg-surface px-3"
                     >
                       <option value="keep">Manter registros</option>
                       <option value="delete">Excluir registros</option>

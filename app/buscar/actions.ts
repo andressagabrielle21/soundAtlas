@@ -7,21 +7,21 @@ import {
   saveAlbum,
 } from "../../lib/catalog/albums";
 import { isReleaseGroupId } from "../../lib/musicbrainz/cover";
-import { searchAlbums } from "../../lib/musicbrainz/search";
+import { recentAlbums, searchAlbums } from "../../lib/musicbrainz/search";
 import { createClient } from "../../lib/supabase/server";
 
 export async function openAlbum(
-  query: string,
+  query: string | null,
   id: string,
   registerListen: boolean,
+  fromLibrary = false,
 ) {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data?.claims.sub) redirect("/entrar");
 
   if (
-    typeof query !== "string" ||
-    query.length > 200 ||
+    (query !== null && (typeof query !== "string" || query.length > 200)) ||
     typeof id !== "string" ||
     !isReleaseGroupId(id)
   ) {
@@ -30,7 +30,9 @@ export async function openAlbum(
 
   try {
     if (!(await readAlbum(id))) {
-      const results = await searchAlbums(query);
+      const results = await (query === null
+        ? recentAlbums()
+        : searchAlbums(query));
       const album = results.find((result) => result.externalId === id);
       if (!album) throw new Error("Álbum ausente dos resultados.");
       await saveAlbum(album);
@@ -45,6 +47,12 @@ export async function openAlbum(
           ? cause.code
           : undefined,
     });
+    if (query === null)
+      redirect(
+        fromLibrary
+          ? "/biblioteca?aba=discover&erro=album"
+          : "/discover?erro=album",
+      );
     redirect(
       `/buscar?${new URLSearchParams({ q: query, erro: configurationFailed ? "catalogo" : "album", ...(registerListen && { registrar: "1" }) })}`,
     );

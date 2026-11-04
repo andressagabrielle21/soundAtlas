@@ -109,12 +109,18 @@ export function SearchForm({
           {visibleAlbums.map(({ externalId, title, artist, year }) => (
             <li key={externalId}>
               <form
-                action={openAlbum.bind(null, query, externalId, registerListen)}
+                action={openAlbum.bind(
+                  null,
+                  query,
+                  externalId,
+                  registerListen,
+                  false,
+                )}
               >
                 <Button
                   type="submit"
                   variant="secondary"
-                  className="w-full gap-4 border-0 p-3 text-left hover:bg-control"
+                  className="w-full gap-4 p-3 text-left hover:bg-control"
                 >
                   <Image
                     src={`/album/${encodeURIComponent(externalId)}/capa`}

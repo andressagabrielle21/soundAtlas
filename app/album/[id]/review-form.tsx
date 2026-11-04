@@ -45,7 +45,7 @@ export function ReviewForm({
             onChange={(event) => setReview(event.target.value)}
             maxLength={REVIEW_MAX_LENGTH}
             aria-describedby="review-count"
-            className="w-full rounded-lg border border-outline bg-surface p-3"
+            className="w-full rounded-lg bg-surface p-3"
           />
           <p id="review-count" className="text-sm text-muted">
             {draftReview.length.toLocaleString("pt-BR")} / 5.000 caracteres

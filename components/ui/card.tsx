@@ -7,7 +7,7 @@ export function Card({
   return (
     <div
       {...props}
-      className={`rounded-xl border border-outline bg-surface p-panel ${className}`}
+      className={`rounded-xl bg-surface p-panel ${className}`}
     />
   );
 }

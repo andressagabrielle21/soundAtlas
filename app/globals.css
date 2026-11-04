@@ -57,3 +57,25 @@
     transform: none;
   }
 }
+
+@utility album-tile {
+  border-radius: var(--radius-xl);
+
+  @media (prefers-reduced-motion: no-preference) {
+    transition: transform 160ms ease-out;
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+@layer base {
+  :where(button, summary, a) {
+    @media (prefers-reduced-motion: no-preference) {
+      transition:
+        background-color 160ms ease-out,
+        color 160ms ease-out;
+    }
+  }
+}

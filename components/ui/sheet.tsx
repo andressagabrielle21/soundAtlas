@@ -30,7 +30,7 @@ export function Sheet({ open, onOpenChange, title, children }: SheetProps) {
         event.preventDefault();
         onOpenChange(false);
       }}
-      className="open:enter-content fixed inset-x-0 top-auto bottom-0 mx-auto max-h-[85dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-2xl border border-outline bg-surface p-panel pb-[calc(var(--spacing-panel)+env(safe-area-inset-bottom))] text-ink backdrop:bg-black/70"
+      className="open:enter-content fixed inset-x-0 top-auto bottom-0 mx-auto max-h-[85dvh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-t-2xl bg-surface p-panel pb-[calc(var(--spacing-panel)+env(safe-area-inset-bottom))] text-ink backdrop:bg-black/70"
     >
       <header className="mb-gutter flex items-center justify-between gap-gutter">
         <h2 id={titleId} className="text-heading font-semibold">

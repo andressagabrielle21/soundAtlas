@@ -1,3 +1,5 @@
+import { Suspense } from "react";
+import { Releases } from "../discover/releases";
 import { RatingStars } from "../../components/ui/rating-stars";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,13 +14,12 @@ import { filterLibrary, type LibraryEntry } from "./library";
 
 const pageSize = 24;
 const tabs = [
+  { value: "listened", label: "Já ouvi" },
   { value: "want", label: "Quero ouvir" },
   { value: "listening", label: "Ouvindo" },
-  { value: "listened", label: "Já ouvi" },
 ];
 
-const selectClass =
-  "w-full min-h-touch rounded-lg border border-outline bg-surface px-2";
+const selectClass = "w-full min-h-touch rounded-lg bg-surface px-2";
 const linkClass = "inline-flex min-h-touch items-center rounded-lg px-3";
 const numberFormat = new Intl.NumberFormat("pt-BR");
 
@@ -28,6 +29,22 @@ export default async function LibraryPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const params = await searchParams;
+  if (params.aba === "discover") {
+    return (
+      <>
+        <h1 className="text-3xl font-bold tracking-tight">Biblioteca</h1>
+        <Link
+          href="/biblioteca"
+          className="my-3 inline-flex min-h-touch items-center text-accent"
+        >
+          Minha coleção
+        </Link>
+        <Suspense fallback={<p role="status">Carregando lançamentos…</p>}>
+          <Releases fromLibrary failed={params.erro === "album"} />
+        </Suspense>
+      </>
+    );
+  }
   const status =
     tabs.find(({ value }) => value === params.status)?.value ?? "listened";
   const genre =
@@ -57,7 +74,7 @@ export default async function LibraryPage({
     const { data, error } = await supabase
       .from("library_entries")
       .select(
-        "status,rating,created_at,album:albums!inner(external_id,title,genres,decade,cover_url)",
+        "status,rating,created_at,album:albums!inner(external_id,title,genres,decade,cover_url,artist:artists(name))",
       )
       .eq("user_id", user.id)
       .order("id")
@@ -115,7 +132,15 @@ export default async function LibraryPage({
 
   return (
     <>
-      <h1 className="text-heading font-semibold">Biblioteca</h1>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-3xl font-bold tracking-tight">Biblioteca</h1>
+        <Link
+          href="/biblioteca?aba=discover"
+          className="inline-flex min-h-touch items-center px-2 text-sm font-semibold text-accent"
+        >
+          Discover
+        </Link>
+      </div>
       <nav
         aria-label="Status da biblioteca"
         className="mt-3 flex flex-wrap gap-1"
@@ -138,7 +163,7 @@ export default async function LibraryPage({
       </nav>
 
       <details key={query.toString()} className="my-panel">
-        <summary className="flex min-h-touch w-fit cursor-pointer list-none items-center gap-2 rounded-lg border border-outline bg-surface px-3 font-semibold [&::-webkit-details-marker]:hidden">
+        <summary className="ml-auto grid size-touch cursor-pointer list-none place-items-center rounded-lg text-muted hover:bg-control [&::-webkit-details-marker]:hidden">
           <svg
             aria-hidden="true"
             viewBox="0 0 24 24"
@@ -151,7 +176,7 @@ export default async function LibraryPage({
           >
             <path d="M4 6h16M7 12h10m-7 6h4" />
           </svg>
-          Filtrar
+          <span className="sr-only">Filtrar</span>
         </summary>
         <form
           action="/biblioteca"
@@ -235,7 +260,7 @@ export default async function LibraryPage({
             <li key={album.external_id} className="min-w-0">
               <Link
                 href={`/album/${album.external_id}`}
-                className={`flex gap-3 rounded-xl bg-surface p-2 ${view === "grid" ? "flex-col" : "items-center"}`}
+                className={`album-tile flex h-full gap-2 ${view === "grid" ? "flex-col" : "items-center p-2"}`}
               >
                 <Image
                   alt=""
@@ -243,7 +268,7 @@ export default async function LibraryPage({
                   height={160}
                   sizes={
                     view === "grid"
-                      ? "(min-width: 640px) 136px, (min-width: 512px) 218px, calc((100vw - 76px) / 2)"
+                      ? "(min-width: 640px) 152px, (min-width: 512px) 234px, calc((100vw - 44px) / 2)"
                       : "56px"
                   }
                   src={
@@ -251,10 +276,21 @@ export default async function LibraryPage({
                       ? `/album/${album.external_id}/capa`
                       : "/album-placeholder.svg"
                   }
-                  className={`aspect-square rounded-lg object-cover ${view === "grid" ? "w-full" : "w-14"}`}
+                  className={`aspect-square rounded-lg object-cover ${view === "grid" ? "w-full" : "w-14 shrink-0"}`}
                 />
                 <div className="min-w-0 wrap-anywhere">
-                  <p className="font-semibold">{album.title}</p>
+                  <p
+                    className={
+                      view === "grid"
+                        ? "line-clamp-2 h-10 text-sm leading-5 font-semibold"
+                        : "font-semibold"
+                    }
+                  >
+                    {album.title}
+                  </p>
+                  <p className="truncate text-sm text-muted">
+                    {album.artist?.name ?? "Artista desconhecido"}
+                  </p>
                   <p className="text-sm text-muted">
                     {rating === null ? (
                       "Sem nota"

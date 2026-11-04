@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const items = [
-  { href: "/", label: "Diário" },
+  { href: "/discover", label: "Discover" },
   { href: "/buscar", label: "Buscar" },
   { href: "/biblioteca", label: "Biblioteca" },
   { href: "/perfil", label: "Perfil" },
@@ -16,9 +16,9 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="sticky bottom-0 border-t border-outline bg-surface px-gutter pb-[env(safe-area-inset-bottom)]"
+      className="sticky bottom-0 bg-surface px-1 sm:px-gutter pb-[env(safe-area-inset-bottom)]"
     >
-      <ul className="mx-auto grid max-w-lg grid-cols-5 gap-1 py-1">
+      <ul className="mx-auto grid max-w-lg grid-cols-5 gap-0 py-1">
         {items.flatMap(({ href, label }, index) => {
           const current = pathname === href;
           const active =
@@ -33,7 +33,7 @@ export function BottomNav() {
                 aria-current={
                   current ? "page" : active ? "location" : undefined
                 }
-                className="relative flex min-h-touch min-w-touch items-center justify-center rounded-lg px-1 text-center text-caption font-semibold text-muted hover:bg-control aria-current:bg-control aria-current:text-accent"
+                className="relative flex min-h-touch min-w-0 items-center justify-center rounded-lg text-center text-caption font-semibold text-muted hover:bg-control aria-current:bg-control aria-current:text-accent"
               >
                 {active && (
                   <span

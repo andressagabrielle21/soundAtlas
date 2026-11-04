@@ -7,7 +7,7 @@ type ButtonProps = ComponentPropsWithRef<"button"> & {
 const variants = {
   primary: "bg-accent text-on-accent enabled:hover:bg-accent-hover",
   secondary:
-    "border border-outline bg-surface text-ink enabled:hover:bg-control",
+    "bg-surface text-ink enabled:hover:bg-control",
 };
 
 export function Button({

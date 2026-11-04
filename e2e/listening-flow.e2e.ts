@@ -6,13 +6,27 @@ test("cadastro até estatísticas de uma escuta no celular", async ({ page }) =>
   const title = "Horizonte de Teste";
   const note = "Escuta registrada no fluxo mobile.";
 
-  await test.step("Criar a conta e entrar no diário", async () => {
+  await test.step("Criar a conta e abrir o Discover", async () => {
     await page.goto("/cadastrar");
     await page.getByLabel("Nome de usuário").fill(username);
     await page.getByLabel("E-mail").fill(`${username}@example.com`);
     await page.getByLabel("Senha").fill("SoundAtlas-E2E-123!");
     await page.getByRole("button", { name: "Criar conta" }).click();
-    await expect(page.getByRole("heading", { name: "Diário" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Discover", exact: true }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/discover$/);
+    await expect(
+      page.getByRole("button", { name: /Lançamento de Teste/ }),
+    ).toBeVisible();
+    await page.getByRole("link", { name: "Biblioteca", exact: true }).click();
+    await page
+      .getByRole("main")
+      .getByRole("link", { name: "Discover" })
+      .click();
+    await expect(
+      page.getByRole("button", { name: /Lançamento de Teste/ }),
+    ).toBeVisible();
   });
 
   await test.step("Buscar o álbum e adicioná-lo à biblioteca", async () => {
@@ -65,7 +79,10 @@ test("cadastro até estatísticas de uma escuta no celular", async ({ page }) =>
   });
 
   await test.step("Conferir a escuta no diário", async () => {
-    await page.getByRole("link", { name: "Diário", exact: true }).click();
+    await page.getByRole("link", { name: "Perfil", exact: true }).click();
+    await expect(
+      page.getByRole("heading", { name: "Diário", exact: true }),
+    ).toBeVisible();
     const entry = page.getByRole("listitem").filter({ hasText: note });
     await expect(entry.getByRole("link", { name: title })).toBeVisible();
     await expect(
@@ -74,7 +91,6 @@ test("cadastro até estatísticas de uma escuta no celular", async ({ page }) =>
   });
 
   await test.step("Conferir os agrupamentos nas estatísticas", async () => {
-    await page.getByRole("link", { name: "Perfil", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Estatísticas", exact: true }),
     ).toBeVisible();

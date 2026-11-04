@@ -33,7 +33,7 @@ export function Input({
         id={inputId}
         aria-describedby={description || undefined}
         aria-invalid={error ? true : invalid}
-        className={`min-h-touch w-full min-w-0 rounded-lg border border-outline bg-control px-gutter py-2 text-body placeholder:text-muted aria-invalid:border-danger disabled:opacity-50 ${className}`}
+        className={`min-h-touch w-full min-w-0 rounded-lg bg-control px-gutter py-2 text-body placeholder:text-muted aria-invalid:ring-2 aria-invalid:ring-danger disabled:opacity-50 ${className}`}
       />
       {error && (
         <p id={errorId} className="text-sm text-danger">

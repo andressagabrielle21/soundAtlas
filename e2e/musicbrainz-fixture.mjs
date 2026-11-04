@@ -4,6 +4,24 @@ globalThis.fetch = (input, options) => {
   const url = new URL(input instanceof Request ? input.url : input);
 
   if (url.hostname === "musicbrainz.org") {
+    const dates = url.searchParams
+      .get("query")
+      ?.match(/firstreleasedate:\[([\d-]+) TO ([\d-]+)\]/);
+    if (url.pathname === "/ws/2/release-group" && dates) {
+      return Promise.resolve(
+        Response.json({
+          "release-groups": [
+            {
+              id: "00000000-0000-4000-8000-000000000103",
+              title: "Lançamento de Teste",
+              "primary-type": "Album",
+              "first-release-date": dates[2],
+              "artist-credit": [{ name: "Artista Recente" }],
+            },
+          ],
+        }),
+      );
+    }
     if (
       url.pathname === "/ws/2/release-group" &&
       url.searchParams

@@ -172,7 +172,7 @@ async function mutate(
       return failure("Não foi possível salvar a alteração no diário.", 500);
     }
 
-    revalidatePath("/");
+    revalidatePath("/perfil");
     revalidatePath("/biblioteca");
     revalidatePath(`/album/${album.external_id}`);
     return operation === "delete"

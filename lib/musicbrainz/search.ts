@@ -100,7 +100,7 @@ function parseAlbums(payload: unknown): Album[] {
   return albums;
 }
 
-async function fetchAlbums(url: URL, userAgent: string) {
+async function fetchAlbums(url: URL, userAgent: string, revalidate?: number) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
 
@@ -109,7 +109,7 @@ async function fetchAlbums(url: URL, userAgent: string) {
       headers: { Accept: "application/json", "User-Agent": userAgent },
       signal: controller.signal,
       redirect: "error",
-      cache: "no-store",
+      ...(revalidate ? { next: { revalidate } } : { cache: "no-store" }),
     });
 
     if (!response.ok) {
@@ -201,4 +201,37 @@ export async function searchAlbums(text: string): Promise<Album[]> {
     if (searches.get(key) === entry) searches.delete(key);
     throw error;
   }
+}
+
+export async function recentAlbums(now = new Date()) {
+  const userAgent = process.env.MUSICBRAINZ_USER_AGENT?.trim();
+  if (!userAgent)
+    throw new MusicBrainzError(
+      "configuration",
+      "Configure MUSICBRAINZ_USER_AGENT.",
+    );
+
+  const start = new Date(now);
+  start.setUTCDate(start.getUTCDate() - 30);
+  const day = (date: Date) => date.toISOString().slice(0, 10);
+  const url = new URL("https://musicbrainz.org/ws/2/release-group");
+  url.search = new URLSearchParams({
+    query: `primarytype:Album AND firstreleasedate:[${day(start)} TO ${day(now)}]`,
+    limit: "24",
+    fmt: "json",
+  }).toString();
+
+  const albums = await schedule(() => fetchAlbums(url, userAgent, 3600));
+  return [
+    ...new Map(
+      albums
+        .filter(
+          (album) =>
+            album.releaseDate &&
+            album.releaseDate >= day(start) &&
+            album.releaseDate <= day(now),
+        )
+        .map((album) => [album.externalId, album]),
+    ).values(),
+  ].sort((a, b) => (b.releaseDate ?? "").localeCompare(a.releaseDate ?? ""));
 }

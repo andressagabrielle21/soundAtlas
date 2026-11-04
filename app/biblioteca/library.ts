@@ -8,6 +8,7 @@ export type LibraryEntry = {
     genres: string[] | null;
     decade: number | null;
     cover_url: string | null;
+    artist?: { name: string } | null;
   };
 };
 

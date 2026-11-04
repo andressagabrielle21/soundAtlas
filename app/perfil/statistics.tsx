@@ -29,7 +29,7 @@ function BarChart({
   const max = rows.reduce((highest, [, count]) => Math.max(highest, count), 1);
 
   return (
-    <section className="min-w-0 rounded-xl border border-white/15 p-4">
+    <section className="min-w-0 rounded-xl bg-surface p-4">
       <h3 className="text-lg font-semibold">{title}</h3>
       {rows.length === 0 ? (
         <p className="mt-2 text-muted">
@@ -97,7 +97,7 @@ export async function Statistics({ periodo }: { periodo?: string | string[] }) {
             key={key}
             href={`/perfil?periodo=${key}#estatisticas`}
             aria-current={period === key ? "page" : undefined}
-            className="flex min-h-touch items-center justify-center rounded-lg border border-white/20 px-2 text-center aria-[current=page]:border-accent aria-[current=page]:font-semibold aria-[current=page]:text-accent"
+            className="flex min-h-touch items-center justify-center rounded-lg bg-surface px-2 text-center aria-[current=page]:bg-control aria-[current=page]:font-semibold aria-[current=page]:text-accent"
           >
             {label}
           </Link>
@@ -109,7 +109,7 @@ export async function Statistics({ periodo }: { periodo?: string | string[] }) {
           página.
         </p>
       ) : Object.keys(stats.by_month).length === 0 ? (
-        <div className="rounded-xl border border-white/15 p-4">
+        <div className="rounded-xl bg-surface p-4">
           <h3 className="text-lg font-semibold">
             Nenhuma escuta neste período
           </h3>

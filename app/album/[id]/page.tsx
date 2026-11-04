@@ -41,7 +41,9 @@ export default async function AlbumPage({
       .maybeSingle(),
     supabase
       .from("listen_logs")
-      .select("id,listened_on,rating_at_time,note,is_relisten")
+      .select("id,listened_on,rating_at_time,note,is_relisten", {
+        count: "exact",
+      })
       .eq("album_id", album.id)
       .order("listened_on", { ascending: false })
       .order("created_at", { ascending: false, nullsFirst: false })
@@ -49,6 +51,14 @@ export default async function AlbumPage({
       .range(offset, offset + 20),
   ]);
   const status = library.data?.status;
+  const hasListens = (listens.count ?? 0) > 0;
+  const review = library.data ? (
+    <ReviewForm
+      rating={library.data.rating}
+      review={library.data.review}
+      action={saveReview.bind(null, album.id, `/album/${id}`)}
+    />
+  ) : null;
   const genres: string[] = [
     ...new Set<string>([...(album.genres ?? []), ...(details?.genres ?? [])]),
   ];
@@ -82,22 +92,24 @@ export default async function AlbumPage({
           albumId={album.id}
           title={album.title}
           openOnLoad={registrar === "1"}
-        />
+        >
+          {hasListens && review && (
+            <details className="mt-panel">
+              <summary className="flex min-h-touch cursor-pointer items-center text-accent">
+                Nota e resenha do álbum
+              </summary>
+              {review}
+            </details>
+          )}
+        </ListenSheet>
       </LibraryForm>
 
-      {library.data ? (
-        <ReviewForm
-          rating={library.data.rating}
-          review={library.data.review}
-          action={saveReview.bind(null, album.id, `/album/${id}`)}
-        />
-      ) : (
-        !library.error && (
-          <p className="mb-panel text-muted">
-            Adicione o álbum à biblioteca para dar uma nota ou escrever uma
-            resenha.
-          </p>
-        )
+      {!hasListens && review}
+      {!hasListens && !library.data && !library.error && (
+        <p className="mb-panel text-muted">
+          Adicione o álbum à biblioteca para dar uma nota ou escrever uma
+          resenha.
+        </p>
       )}
 
       <AlbumListens
@@ -148,7 +160,7 @@ export default async function AlbumPage({
             {discs.length > 1 && (
               <h3 className="mb-2 font-medium">Disco {position}</h3>
             )}
-            <ol className="divide-y divide-outline rounded-xl border border-outline bg-surface">
+            <ol className="rounded-xl bg-surface">
               {tracks.map(({ id, title }, index) => (
                 <li
                   key={id}

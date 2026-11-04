@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Button } from "./ui/button";
 import { Sheet } from "./ui/sheet";
 import { ListenForm } from "./listen-form";
@@ -12,10 +12,12 @@ export function ListenSheet({
   albumId,
   title,
   openOnLoad,
+  children,
 }: {
   albumId: string;
   title: string;
   openOnLoad: boolean;
+  children?: ReactNode;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(openOnLoad);
@@ -116,6 +118,7 @@ export function ListenSheet({
                 }}
               />
             )}
+            {children}
           </>
         )}
       </Sheet>

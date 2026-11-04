@@ -92,6 +92,45 @@ describe("searchAlbums", () => {
     },
   );
 
+  it("consulta lançamentos, exclui datas fora do período e ordena por recência", async () => {
+    fetchMock.mockResolvedValue(
+      Response.json({
+        "release-groups": [
+          {
+            id: "older",
+            title: "Anterior",
+            "primary-type": "Album",
+            "first-release-date": "2026-10-20",
+            "artist-credit": [],
+          },
+          {
+            id: "recent",
+            title: "Recente",
+            "primary-type": "Album",
+            "first-release-date": "2026-11-02",
+            "artist-credit": [],
+          },
+          {
+            id: "future",
+            title: "Futuro",
+            "primary-type": "Album",
+            "first-release-date": "2026-11-05",
+            "artist-credit": [],
+          },
+        ],
+      }),
+    );
+    const { recentAlbums } = await import("./search");
+    const albums = await recentAlbums(new Date("2026-11-04T12:00:00Z"));
+    expect(albums.map(({ externalId }) => externalId)).toEqual([
+      "recent",
+      "older",
+    ]);
+    expect(
+      new URL(String(fetchMock.mock.calls[0][0])).searchParams.get("query"),
+    ).toBe("primarytype:Album AND firstreleasedate:[2026-10-05 TO 2026-11-04]");
+  });
+
   it("reutiliza buscas idênticas, inclusive enquanto a primeira está em andamento", async () => {
     fetchMock.mockResolvedValue(Response.json({ "release-groups": [] }));
     const { searchAlbums } = await import("./search");

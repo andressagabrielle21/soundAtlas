@@ -1,5 +1,6 @@
 "use client";
 
+import { RatingStars } from "../../../components/ui/rating-stars";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
@@ -108,32 +109,64 @@ export function AlbumListens({
                 <time dateTime={log.listened_on}>
                   {dateFormat.format(new Date(log.listened_on))}
                 </time>
-                {" · "}
-                {log.rating_at_time === null
-                  ? "Sem nota na escuta"
-                  : `${ratingFormat.format(log.rating_at_time)} de 5 estrelas`}
                 {log.is_relisten && " · Reescuta"}
               </p>
+              {log.rating_at_time === null ? (
+                <p className="mt-1 text-sm text-muted">Sem nota na escuta</p>
+              ) : (
+                <p className="mt-1 text-xl">
+                  <RatingStars rating={log.rating_at_time} />
+                  <span className="sr-only">
+                    {ratingFormat.format(log.rating_at_time)} de 5 estrelas
+                  </span>
+                </p>
+              )}
               {log.note && (
                 <p className="mt-2 whitespace-pre-wrap text-muted">
                   {log.note}
                 </p>
               )}
               <div className="mt-2 flex flex-wrap gap-2">
-                <Button
-                  variant="secondary"
+                <button
+                  type="button"
+                  aria-label="Editar escuta"
                   aria-haspopup="dialog"
                   onClick={() => setSelection({ log, mode: "edit" })}
+                  className="grid size-touch place-items-center rounded-lg text-muted hover:bg-control hover:text-ink"
                 >
-                  Editar
-                </Button>
-                <Button
-                  variant="secondary"
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-4"
+                  >
+                    <path d="M4 20l4-1L20 7l-3-3L5 16zM14 7l3 3" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Excluir escuta"
                   aria-haspopup="dialog"
                   onClick={() => setSelection({ log, mode: "delete" })}
+                  className="grid size-touch place-items-center rounded-lg text-muted hover:bg-control hover:text-ink"
                 >
-                  Excluir
-                </Button>
+                  <svg
+                    aria-hidden="true"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-4"
+                  >
+                    <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+                  </svg>
+                </button>
               </div>
             </li>
           ))}

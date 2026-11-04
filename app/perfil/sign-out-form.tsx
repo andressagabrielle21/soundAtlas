@@ -8,7 +8,7 @@ export function SignOutForm() {
   const [error, action, pending] = useActionState(signOut, "");
 
   return (
-    <form action={action} className="mt-panel">
+    <form action={action} className="text-right">
       <Button type="submit" variant="secondary" disabled={pending}>
         {pending ? "Saindo…" : "Sair"}
       </Button>

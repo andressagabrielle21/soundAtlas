@@ -73,7 +73,7 @@ export function ListenForm({
             required
             value={date}
             onChange={(event) => setDate(event.target.value)}
-            className="min-h-touch w-full min-w-0 rounded-lg border border-outline bg-control px-2"
+            className="min-h-touch w-full min-w-0 rounded-lg bg-control px-2"
           />
         </label>
         <StarRating value={rating} onChange={setRating} />
@@ -88,7 +88,7 @@ export function ListenForm({
             rows={2}
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            className="w-full rounded-lg border border-outline bg-control p-2"
+            className="w-full rounded-lg bg-control p-2"
           />
         </label>
         <label className="flex min-h-touch items-center gap-2">
