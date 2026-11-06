@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-canvas: #111116;
-  --color-surface: #1c1c24;
-  --color-control: #262630;
-  --color-outline: #727282;
-  --color-ink: #f6f5fa;
-  --color-muted: #b5b4c3;
-  --color-accent: #c4b5fd;
-  --color-accent-hover: #ddd6fe;
-  --color-on-accent: #211541;
+  --color-canvas: #010736;
+  --color-surface: #0d1c42;
+  --color-control: #22396f;
+  --color-outline: #fcf1d0;
+  --color-ink: #fcf1d0;
+  --color-muted: rgb(252 241 208 / 75%);
+  --color-accent: #fcf1d0;
+  --color-accent-hover: rgb(252 241 208 / 90%);
+  --color-on-accent: #010736;
   --color-danger: #fda4af;
 
   --font-sans: var(--font-ubuntu), system-ui, sans-serif;

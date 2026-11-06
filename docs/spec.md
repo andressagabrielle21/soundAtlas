@@ -105,6 +105,8 @@ Cada `listen_log` guarda um **snapshot** da nota daquele momento (`rating_at_tim
 
 **Apresentação:** tema escuro, layout mobile-first, alvos de toque ≥ 44px e rótulos acessíveis em ações com ícones. Estados de carregamento usam círculo animado centralizado e texto acessível; vazio e erro continuam explícitos. Na página do álbum, a avaliação aparece diretamente quando ainda não há escutas; quando há, fica no sheet, na seção expansível "Nota e resenha do álbum". A interface não oferece atualmente a remoção do álbum da biblioteca (ver regra 6).
 
+**Paleta global:** `#010736` como cor primária/fundo, `#0D1C42` nas superfícies, `#22396F` nos controles e `#FCF1D0` nos textos e destaques. Textos secundários usam o creme com opacidade reduzida. A paleta também se aplica ao tema da PWA, ícones, capa substituta e página offline. Erros preservam a cor semântica de perigo para identificação.
+
 **Planejado (não implementado):** `/discover` ganha seções de álbuns em alta (Last.fm) e, depois, atividade da comunidade; `/album/[id]` ganha, ao final, álbuns de artistas similares; surgem `/perfil/privacidade` e `/u/[username]` (seções 17 e 18).
 
 ---

@@ -1,5 +1,5 @@
 const cachePrefix = "soundatlas-offline-";
-const cacheName = cachePrefix + "v1";
+const cacheName = cachePrefix + "v2";
 const offlinePage = "/pwa/offline.html";
 
 self.addEventListener("install", (event) => {

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "SoundAtlas" },
 };
 
-export const viewport: Viewport = { themeColor: "#111116" };
+export const viewport: Viewport = { themeColor: "#010736" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
