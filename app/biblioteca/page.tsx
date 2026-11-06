@@ -245,13 +245,13 @@ export default async function LibraryPage({
 
       <div className="mb-3 flex items-center justify-between gap-2 text-sm text-muted">
         <p>
-          {results.length} {results.length === 1 ? "?lbum" : "?lbuns"}
+          {results.length} {results.length === 1 ? "álbum" : "álbuns"}
         </p>
         <p>
           {sort === "rating"
             ? "Por nota"
             : sort === "title"
-              ? "Por t?tulo"
+              ? "Por título"
               : "Mais recentes"}
         </p>
       </div>

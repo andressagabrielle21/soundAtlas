@@ -39,25 +39,39 @@ export default async function ProfilePage({
           Não foi possível carregar seu resumo. Tente recarregar a página.
         </p>
       ) : (
-        <dl className="grid grid-cols-3 gap-2 py-1">
-          <div className="flex items-center justify-around min-w-0 flex-col-reverse gap-1">
-            <dt>Álbuns na biblioteca</dt>
-            <dd className="text-3xl font-medium tracking-tight tabular-nums">
+        <dl className="grid grid-cols-3 gap-3 rounded-xl bg-surface px-3 py-3">
+          <div className="flex min-w-0 flex-col-reverse items-center gap-0.5 text-center">
+            <dt className="text-caption leading-4 text-muted">
+              <span aria-hidden="true">Álbuns</span>
+              <span className="sr-only">Álbuns na biblioteca</span>
+            </dt>
+            <dd className="max-w-full text-xl leading-6 font-medium tracking-tight tabular-nums wrap-anywhere">
               {numberFormat.format(summary.total_albums)}
             </dd>
           </div>
-          <div className="flex items-center justify-around min-w-0 flex-col-reverse gap-1">
-            <dt>Escutas no diário</dt>
-            <dd className="text-3xl font-medium tracking-tight tabular-nums">
+          <div className="flex min-w-0 flex-col-reverse items-center gap-0.5 text-center">
+            <dt className="text-caption leading-4 text-muted">
+              <span aria-hidden="true">Escutas</span>
+              <span className="sr-only">Escutas no diário</span>
+            </dt>
+            <dd className="max-w-full text-xl leading-6 font-medium tracking-tight tabular-nums wrap-anywhere">
               {numberFormat.format(summary.total_listens)}
             </dd>
           </div>
-          <div className="flex items-center justify-around min-w-0 flex-col-reverse gap-1">
-            <dt>Nota média da biblioteca</dt>
-            <dd className="text-3xl font-medium tracking-tight tabular-nums">
-              {summary.average_rating === null
-                ? "?"
-                : numberFormat.format(summary.average_rating)}
+          <div className="flex min-w-0 flex-col-reverse items-center gap-0.5 text-center">
+            <dt className="text-caption leading-4 text-muted">
+              <span aria-hidden="true">Nota média</span>
+              <span className="sr-only">Nota média da biblioteca</span>
+            </dt>
+            <dd className="max-w-full text-xl leading-6 font-medium tracking-tight tabular-nums wrap-anywhere">
+              {summary.average_rating === null ? (
+                <>
+                  <span aria-hidden="true">—</span>
+                  <span className="sr-only">Sem notas</span>
+                </>
+              ) : (
+                numberFormat.format(summary.average_rating)
+              )}
             </dd>
           </div>
         </dl>

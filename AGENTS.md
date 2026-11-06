@@ -19,6 +19,7 @@ Vitest, Playwright, deploy na Vercel.
 ## Regras gerais
 - Trabalhe em UMA tarefa por vez; faça mudanças pequenas e revisáveis.
 - Antes de concluir, rode lint, typecheck e testes e informe o resultado.
+- Antes de cada commit ou push, execute `npm test` completo (sem filtrar testes) e `npm run lint` para verificar a padronização ESLint. Corrija as falhas antes de prosseguir e informe os resultados; não faça commit ou push com essas verificações falhando.
 - Não instale dependências novas sem justificar.
 - Não altere o schema do banco fora de arquivos de migração versionados.
 - Nunca commite segredos; use .env.local e mantenha .env.example atualizado.

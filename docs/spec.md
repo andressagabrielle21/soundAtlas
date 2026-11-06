@@ -4,6 +4,10 @@
 
 **Modo de desenvolvimento:** este documento foi escrito para ser seguido com **Codex** (agente de código) e **ChatGPT** (planejamento e revisão). Ele serve ao mesmo tempo como especificação do produto e como roteiro de tarefas para entregar à IA.
 
+**Revisão da implementação: 06/11/2026.** As seções de telas e operações descrevem o código atual. A seção 10 conserva o roteiro de desenvolvimento, com notas sobre mudanças posteriores; seus critérios de aceite não representam uma declaração de conclusão ou de validação em produção. As regras de negócio da seção 5 continuam normativas.
+
+**Planejamento pós-MVP: 06/11/2026.** As seções 15 a 18 descrevem trabalho **planejado e ainda não implementado** (performance e segurança, Discover com Last.fm, preparação para a parte social). As tarefas operacionais dessas etapas ficam em `docs/tasks.md`; as demais seções continuam descrevendo o código atual.
+
 ---
 
 ## 1. Visão geral
@@ -53,7 +57,7 @@ Cada `listen_log` guarda um **snapshot** da nota daquele momento (`rating_at_tim
 
 ### Dentro do MVP
 
-- Cadastro/login (e-mail + senha ou magic link)
+- Cadastro/login por e-mail e senha, com confirmação de e-mail quando exigida pelo Supabase (magic link não implementado)
 - Busca de álbuns por nome/artista
 - Página do álbum
 - Biblioteca com status (*Quero ouvir / Ouvindo / Já ouvi*)
@@ -72,6 +76,8 @@ Cada `listen_log` guarda um **snapshot** da nota daquele momento (`rating_at_tim
 - Avaliação de faixas individuais
 - App nativo
 
+> Recomendações, integração com Last.fm e recursos sociais passam a ser planejados nas seções 15 a 18 (Fases 2 e 3).
+
 ### Critérios de sucesso
 
 - Fluxo "buscar → adicionar → avaliar → logar" completo sem ajuda.
@@ -85,19 +91,27 @@ Cada `listen_log` guarda um **snapshot** da nota daquele momento (`rating_at_tim
 
 | Tela | Conteúdo principal |
 |---|---|
-| **Diário (início)** | Linha do tempo das últimas escutas (capa, nota, data, trecho do comentário) |
-| **Buscar** | Campo de busca; resultados com capa, artista e ano |
-| **Álbum** | Capa, artista, ano, gêneros, faixas; status; estrelas; resenha; "Registrar escuta"; histórico de escutas do álbum |
-| **Biblioteca** | Abas por status; filtros (gênero, década, nota); ordenação |
+| **Discover** (`/discover`) | Lançamentos dos últimos 30 dias; `/` redireciona para esta tela |
+| **Buscar** (`/buscar`) | Busca por título ou artista, incluindo último termo incompleto; debounce de 400 ms; resultados paginados com capa, artista e ano |
+| **Álbum** (`/album/[id]`) | Capa, título, artista, ano, gêneros e faixas; status; nota e resenha; botão minimalista "+" ao lado dos dados principais; histórico com editar/excluir no canto superior direito de cada escuta |
+| **Biblioteca** (`/biblioteca`) | Abas por status em toda a largura; filtro no cabeçalho; gênero, década e nota; ordenação por recentes, nota ou título; grade/lista e paginação de 24 álbuns; metadados compactos |
 | **Registrar escuta** (sheet) | Data (padrão: hoje), nota, comentário, marcação "reescuta" |
-| **Estatísticas** | Escutas por mês, top gêneros, distribuição por década e por nota |
-| **Perfil** | Conta, exportação, logout |
+| **Perfil** (`/perfil`) | Resumo compacto de álbuns, escutas e nota média; estatísticas por mês, gênero, década e nota; diário agrupado por mês, com paginação de 20 escutas; exportação JSON/CSV e logout |
+| **Entrar / Criar conta** (`/entrar`, `/cadastrar`) | Formulários minimalistas de e-mail e senha; cadastro também exige nome de usuário; validações e confirmação de e-mail; sem navegação inferior |
 
-**Navegação:** barra inferior fixa — *Diário · Buscar · Biblioteca · Perfil* — com botão de ação rápida "+" para registrar escuta.
+**Navegação:** barra inferior aderente ao rodapé — *Discover · Buscar · + · Biblioteca · Perfil*. O botão "+" se projeta acima da barra, com base arredondada, e abre `/buscar?registrar=1` para escolher o álbum. A página do álbum abre o sheet diretamente; `?registrar=1` permite abri-lo ao chegar à página.
+
+**Rotas de compatibilidade:** `/diario` redireciona para `/perfil#diario`, preservando a página válida; `/estatisticas` redireciona para `/perfil?periodo=…#estatisticas`. Estatísticas usam 7 dias, 30 dias (padrão), ano ou tudo. `/login` e `/cadastro` não são os caminhos implementados.
+
+**Apresentação:** tema escuro, layout mobile-first, alvos de toque ≥ 44px e rótulos acessíveis em ações com ícones. Estados de carregamento usam círculo animado centralizado e texto acessível; vazio e erro continuam explícitos. Na página do álbum, a avaliação aparece diretamente quando ainda não há escutas; quando há, fica no sheet, na seção expansível "Nota e resenha do álbum". A interface não oferece atualmente a remoção do álbum da biblioteca (ver regra 6).
+
+**Planejado (não implementado):** `/discover` ganha seções de álbuns em alta (Last.fm) e, depois, atividade da comunidade; `/album/[id]` ganha, ao final, álbuns de artistas similares; surgem `/perfil/privacidade` e `/u/[username]` (seções 17 e 18).
 
 ---
 
 ## 5. Modelo de dados
+
+O SQL abaixo resume as entidades e não substitui as migrações executáveis em `supabase/migrations`. Triggers de criação de perfil, funções de diário, remoção e agregações do perfil são versionados nessas migrações; alterações de schema devem continuar sendo feitas exclusivamente por migração.
 
 ```sql
 users (
@@ -166,6 +180,8 @@ create index on library_entries (user_id, status);
 6. Remover um álbum da biblioteca pergunta se os logs devem ser removidos (padrão: **manter**).
 7. Notas válidas: 0,5; 1,0; 1,5; … ; 5,0.
 
+**Situação da regra 6:** a operação de remoção permanece na Server Action e na função SQL `remove_library_album`, mas seu controle foi retirado da interface. A regra continua válida caso a remoção volte a ser exposta; a interface atual não satisfaz o aceite original de remoção em T3.1.
+
 ---
 
 ## 6. Fonte de dados do catálogo
@@ -178,7 +194,9 @@ create index on library_entries (user_id, status);
 - Usar **release-group** como identidade do álbum (evita duplicatas de edições deluxe/remasters).
 - Normalizar tags para uma lista curada de gêneros (rock, pop, hip hop, eletrônica, jazz, MPB…).
 
-Alternativas (Spotify, Last.fm): conferir termos e restrições atuais antes de depender delas.
+**Busca implementada:** frases por título/artista e prefixo no último termo; a consulta parcial de artistas usa `artistname`. Resultados de busca têm cache em memória por 10 minutos, limitado a 128 consultas, com reutilização de requisições em andamento; esse cache é por instância, não persistente nem compartilhado entre servidores. O catálogo selecionado é persistido em `albums`/`artists`. Discover consulta até 24 lançamentos com revalidação de uma hora. A consulta externa tem prazo de 5 segundos. A correção da busca parcial possui testes mockados; eles não comprovam a qualidade dos resultados da API real.
+
+**Last.fm** é a fonte planejada para álbuns em alta e artistas similares (seção 17), sempre como camada complementar: MusicBrainz continua sendo a identidade do álbum. Spotify não está previsto; conferir termos e restrições atuais antes de depender dele ou de qualquer outra API.
 
 ---
 
@@ -189,7 +207,7 @@ Alternativas (Spotify, Last.fm): conferir termos e restrições atuais antes de 
 | Front-end | Next.js (App Router) + TypeScript |
 | Estilo | Tailwind CSS |
 | Backend/DB | Supabase (Postgres + Auth + RLS) |
-| Gráficos | Recharts (ou SVG próprio) |
+| Gráficos | Barras em HTML/CSS, sem biblioteca adicional |
 | Hospedagem | Vercel + Supabase |
 | Testes | Vitest (unidade) + Playwright (E2E) |
 
@@ -199,26 +217,29 @@ Mantenha a stack **fixa** durante o MVP: IAs funcionam melhor com um conjunto de
 
 ## 8. Endpoints / operações
 
+As operações abaixo refletem a implementação atual. Leituras das páginas usam componentes de servidor e Supabase; alterações de status, nota e resenha usam Server Actions, sem endpoints REST dedicados de biblioteca ou estatísticas.
+
 ```
-GET    /api/search?q=
-GET    /api/albums/:id
+GET    /buscar/resultados?q=         busca de álbuns
+GET    /album/:id/capa               proxy público de capa / fallback
+GET    /auth/confirmar               confirmação de autenticação
 
-GET    /api/library?status=&genre=&decade=&rating=&sort=
-PUT    /api/library/:albumId        status / nota / resenha
-DELETE /api/library/:albumId
-
-GET    /api/logs?from=&to=&albumId=
+GET    /api/logs?album_id=&id=&offset=
 POST   /api/logs
-PATCH  /api/logs/:id
-DELETE /api/logs/:id
-
-GET    /api/stats/genres?from=&to=
-GET    /api/stats/decades?from=&to=
-GET    /api/stats/timeline?granularity=month
-GET    /api/stats/ratings
+PATCH  /api/logs                     identificador no corpo JSON
+DELETE /api/logs?id=
 
 GET    /api/export?format=json|csv
 ```
+
+- `openAlbum`: seleciona/persiste o álbum e redireciona para seus detalhes.
+- `updateLibrary`: altera status; também conserva a operação de remoção, atualmente sem controle na interface.
+- `saveReview`: salva a nota e a resenha atuais, sem criar uma escuta.
+- `signIn`, `signUp`, `signOut`: autenticação por Server Actions.
+- RPCs `read_profile_data` e `read_listening_stats`: resumo e estatísticas do perfil; `read_album_diary` e `write_album_diary`: leitura e gravação transacional do diário.
+- RLS e validação no servidor continuam obrigatórias nas operações com dados do usuário.
+
+**Planejado:** as novas operações (resolver álbum do Last.fm, seguir, bloquear, denunciar, curtir, comentar) seguem o padrão atual de Server Actions com validação Zod, sem novos endpoints REST, salvo necessidade justificada (seções 16 a 18).
 
 ---
 
@@ -237,12 +258,14 @@ O Codex lê um `AGENTS.md` na raiz do repositório com instruções permanentes.
 
 ### Ciclo de trabalho (por tarefa)
 
-1. **Escolha uma tarefa** da seção 10 (uma por vez; cada tarefa deve caber em um diff revisável).
+1. **Escolha uma tarefa** da seção 10 (histórico do MVP) ou de `docs/tasks.md` (Etapas 7 a 10), uma por vez; cada tarefa deve caber em um diff revisável.
 2. **Entregue o prompt** ao Codex, apontando `AGENTS.md` e as seções relevantes do spec.
 3. **Teste primeiro** nas regras críticas: peça os testes antes da implementação.
 4. **Rode** lint, typecheck e testes; confira o resultado no celular (ou no modo responsivo do navegador).
 5. **Revise o diff** (você mesmo ou com ChatGPT usando a checklist do Apêndice B).
 6. **Commit pequeno** na branch da tarefa e merge só com os critérios de aceite cumpridos.
+
+**Antes de cada commit ou push:** executar `npm test` completo, sem filtros, e `npm run lint`; corrigir falhas antes de prosseguir e informar os resultados, conforme `AGENTS.md`. `npm test` executa Vitest; o E2E é separado (`npm run test:e2e`) e exige Supabase local configurado. Não tratar aprovação de testes unitários como aprovação do E2E ou de auditoria visual.
 
 ### Boas práticas
 
@@ -261,12 +284,19 @@ O Codex lê um `AGENTS.md` na raiz do repositório com instruções permanentes.
 - Estados de carregamento, vazio e erro.
 - Estrelas com meia nota no mobile (alvo de toque, acessibilidade).
 - Fusos horários em `listened_on` (use `date`, não timestamp).
+- Chamadas a APIs externas (Last.fm) dentro da renderização da página, sem timeout nem `Suspense`.
+- Vazamento de dados privados ao criar tabelas, views ou RPCs `security definer` novas (sem RLS, sem `search_path` fixo, sem usar `auth.uid()`).
+- Rate limit com contador em memória (não funciona entre instâncias serverless).
 
 ---
 
 ## 10. Plano de desenvolvimento em tarefas
 
 Legenda: **Aceite** = critério para considerar a tarefa concluída. Prompts são pontos de partida; ajuste ao contexto.
+
+**Ajustes ao roteiro original:** T0.3 usa Discover no lugar de Diário na barra; T1.2 implementa e-mail/senha; T3.1 mantém status, mas a remoção foi retirada da interface; T4.4 é entregue dentro do perfil e `/` abre Discover; T5.2 também está no perfil, com redirecionamento da rota antiga; T6.1 reúne resumo, estatísticas, diário e exportação. Os prompts abaixo são históricos e devem ser interpretados com essas alterações e com as seções 4 e 8.
+
+**Etapas 7 a 10 (pós-MVP):** performance e segurança, Discover/Last.fm, preparação social e social. Seus prompts, ordem e critérios de aceite estão em `docs/tasks.md`; o desenho e as regras estão nas seções 15 a 18.
 
 ### Etapa 0 — Fundação
 
@@ -414,27 +444,38 @@ Estimativa para uso de IA em tempo parcial. A parte mecânica tende a ser rápid
 | **M3 — Registro** | Etapas 3 e 4: biblioteca, nota, resenha, diário | ~1–2 semanas |
 | **M4 — Insights** | Etapa 5: estatísticas | ~3–5 dias |
 | **M5 — Beta** | Etapa 6: acabamento e testadores | ~1 semana |
+| **M6 — Base segura** | Etapa 7: auditoria, RLS, Zod, rate limit, CSP | ~1–2 semanas |
+| **M7 — Discover+** | Etapa 8: álbuns em alta e similares (Last.fm) | ~1–2 semanas |
+| **M8 — Pré-social** | Etapa 9: privacidade, eventos, seguir/bloquear, testes | ~1–2 semanas |
+| **M9 — Comunidade** | Etapa 10: feed, perfis, curtidas, comentários | ~2–3 semanas |
 
-**Total: ~4 a 6 semanas** em tempo parcial. Comece a usar o app com seus álbuns reais a partir do M3: é o melhor teste de usabilidade e já gera os dados das futuras recomendações.
+**Total do MVP (M1–M5): ~4 a 6 semanas** em tempo parcial; M6–M9 são estimativas iniciais para as próximas fases. Comece a usar o app com seus álbuns reais a partir do M3: é o melhor teste de usabilidade e já gera os dados das futuras recomendações.
 
 ---
 
 ## 12. Roadmap pós-MVP
 
-### Fase 2 — Recomendações simples (sobre seus dados)
+### Etapa 7 — Performance e segurança (base)
+- Auditoria do estado atual, RLS verificável em CI, Zod, rate limit, CSP, imagens, observabilidade (seção 15)
+
+### Fase 2 — Discover com álbuns em alta e artistas similares (Last.fm)
+- Seções "Artistas em alta" e "Populares por gênero" no `/discover`, ao lado de "Lançamentos"
+- Bloco de álbuns de artistas similares ao fim de `/album/[id]` (seção 17)
+
+### Fase 2b — Recomendações pessoais (sobre seus dados)
 - "Mais deste gênero/década que você avalia bem"
 - Artistas que você ouve muito, com discos ainda não ouvidos
-- Discografia pendente de artistas favoritos
 - Regras e SQL, sem machine learning
 
-### Fase 3 — Recomendações avançadas
-- Similaridade entre álbuns (tags, artistas relacionados, embeddings)
-- Filtragem colaborativa quando houver base de usuários
-- Explicação de cada sugestão ("porque você deu 5★ a X")
+### Fase 3 — Comunicação entre usuários (seção 18)
+- 3-prep: privacidade, `activity_events`, seguir/bloquear/denunciar, exclusão de conta, testes de privacidade
+- 3a: "Comunidade" no `/discover`, perfis públicos, seguir
+- 3b: "Em alta no SoundAtlas", curtidas
+- 3c: comentários curtos
 
-### Fase 4 — Social e integrações
-- Seguir amigos, feed, listas compartilháveis
-- Importação do Last.fm/Spotify, scrobbling
+### Fase 4 — Avançado
+- Similaridade entre álbuns (tags, embeddings) e filtragem colaborativa, com explicação de cada sugestão
+- Importação do Last.fm/Spotify, scrobbling, listas compartilháveis
 - Resumo anual ("Seu ano em música")
 
 ---
@@ -453,6 +494,14 @@ Estimativa para uso de IA em tempo parcial. A parte mecânica tende a ser rápid
 | Idioma | MVP em pt-BR; estruturar textos para i18n depois |
 | Privacidade | MVP 100% privado; decidir visibilidade só na fase social |
 | Decidido: escala de notas | Meias estrelas aceitas (0,5 a 5,0) |
+| Last.fm não tem chart de álbuns nem "álbuns similares" | Derivar via artistas (seção 17.2) e rotular como "em alta no Last.fm" |
+| Itens do Last.fm sem `mbid` confiável | Resolvedor com `album_links` e cache negativo |
+| Termos de uso do Last.fm (cache, atribuição, uso comercial) | Revisar antes de lançar e registrar em `docs/decisions.md` |
+| Tela fria lenta ao depender do Last.fm | `Suspense` por seção, timeout de 3 s, medir; promover para cache persistente + cron se necessário |
+| Cache de busca em memória não é compartilhado entre instâncias | Não usá-lo para rate limit; contador em armazenamento compartilhado |
+| Vazamento de dados privados ao abrir a parte social | Projeções (`activity_events`), privado por padrão, matriz de testes de privacidade |
+| Abuso em perfis e comentários | Bloqueio, denúncia, rate limit; sem DMs nem upload de avatar no início |
+| Proxy de capa (`/album/:id/capa`) público | Lista de hosts permitidos e validação (T7.5) |
 
 ---
 
@@ -465,6 +514,277 @@ Estimativa para uso de IA em tempo parcial. A parte mecânica tende a ser rápid
 - Regras de negócio críticas com teste automatizado
 - Sem erros no console; navegável por teclado
 - Diff revisado por você; commit pequeno e descritivo
+
+---
+
+## 15. Performance e segurança
+
+> **Planejado.** Vale para todo o app e é pré-requisito da Fase 3: abrir dados de usuários a outros usuários só é seguro sobre uma base endurecida. O primeiro passo é **auditar o que já existe** (T7.0 em `docs/tasks.md`) e corrigir apenas as lacunas.
+
+### 15.1 Metas mensuráveis (mobile, rede 4G simulada)
+
+| Métrica | Meta |
+|---|---|
+| LCP (maior elemento visível) | < 2,5 s |
+| INP (resposta a toques) | < 200 ms |
+| CLS (saltos de layout) | < 0,1 |
+| Lighthouse mobile | Performance ≥ 85 · Acessibilidade ≥ 90 · Boas práticas ≥ 90 |
+| JS inicial por rota | ≤ ~200 KB (gzip), conferido com bundle analyzer |
+| Rota própria com dado em cache (p95) | < 500 ms |
+| Chamada a API externa | **nunca** bloqueia a renderização de uma tela inteira |
+
+Antes de impor metas no CI, meça a linha de base atual (T7.7); metas já violadas hoje viram tarefas, não bloqueios imediatos.
+
+### 15.2 Princípios de performance
+
+1. **Cache-first:** telas leem de cache ou do banco; APIs externas (MusicBrainz, Last.fm) alimentam o cache.
+2. **Streaming por seção:** cada bloco que depende de API externa fica em seu próprio `<Suspense>` com skeleton e **timeout curto (≈ 3 s)**; falha oculta o bloco, nunca quebra a página.
+3. **Stale-while-revalidate:** servir o dado antigo enquanto atualiza em segundo plano.
+4. **Paginação por cursor/limite** em biblioteca, diário e feeds; limite máximo imposto no servidor.
+5. **Imagens:** `next/image` com `sizes` corretos, miniaturas em listas, lazy-load abaixo da dobra, placeholder/fallback de capa, hosts em lista de permissão.
+6. **Cálculos no banco:** agregações em SQL/RPC com índices (já é o padrão de `read_listening_stats`).
+7. **Interface otimista** em ações curtas (curtir, seguir), revertendo em caso de falha.
+8. **Bundle enxuto:** sem bibliotecas pesadas; revisar dependências sugeridas pela IA.
+9. **Chamadas externas paralelas** com `Promise.allSettled`, concorrência limitada e timeouts; uma fonte fora do ar não derruba a outra.
+
+### 15.3 Princípios de segurança
+
+**Identidade e acesso**
+- `user_id` **sempre derivado da sessão no servidor**, nunca do corpo da requisição ou de parâmetros de URL.
+- **RLS ativo em toda tabela** do schema `public`; tabela sem RLS deve quebrar o CI (T7.1).
+- Tabelas privadas (`library_entries`, `listen_logs`) **nunca** têm a política afrouxada para terceiros. Dados sociais saem por **projeções** (seção 18).
+- Chave `service_role` só em código de servidor e só quando indispensável.
+
+**Segredos e dependências**
+- Chaves (Last.fm, `service_role`, futuros segredos de cron) só no servidor; nenhuma variável secreta com prefixo `NEXT_PUBLIC_`; scanner de segredos em CI.
+- Dependabot e `npm audit`; toda dependência sugerida pela IA é verificada (existe? é mantida? é necessária?).
+
+**Entrada e saída**
+- **Zod no servidor** em toda Server Action, rota `/api` e rota GET com parâmetros (`/buscar/resultados`, `/album/:id/capa`): tipos, tamanhos, escala de notas, datas, `limit` máximo. Respostas de APIs externas também são validadas antes de gravar ou exibir.
+- Texto de usuário (resenhas, comentários futuros) é **texto puro**; sem `dangerouslySetInnerHTML`.
+- **Nada de proxy aberto:** `/album/:id/capa` só busca capas de hosts permitidos para aquele álbum.
+
+**Abuso**
+- Rate limiting por usuário/IP em busca, autenticação, ações que chamam API externa e (futuro) seguir/comentar. Em ambiente serverless, o contador precisa de **armazenamento compartilhado** (o cache de busca atual é em memória por instância e **não serve** para isso). Resposta `429` com `Retry-After`.
+
+**Transporte e navegador**
+- HTTPS; `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`, `frame-ancestors 'none'`. A CSP deve listar apenas os hosts de imagem realmente usados (Cover Art Archive, Last.fm se aplicável, Supabase).
+
+**Dados e conformidade**
+- Backups ativos com **restauração testada**; exportação já existe (`/api/export`); exclusão de conta completa (LGPD) é pré-requisito da Fase 3.
+- Logs e monitoramento **sem dados pessoais** (sem e-mail, sem texto de resenha).
+
+### 15.4 Itens a verificar na auditoria (T7.0)
+
+Pontos que a spec atual não permite confirmar e que o código deve responder:
+
+- Todas as tabelas têm RLS? Existe teste de isolamento entre usuários (T1.3) e ele cobre as RPCs (`read_profile_data`, `read_listening_stats`, `read_album_diary`, `write_album_diary`, `remove_library_album`)? As funções `security definer` fixam `search_path` e derivam o usuário de `auth.uid()`?
+- `/buscar/resultados`, `/album/:id/capa`, `/api/logs` e `/api/export` exigem sessão? Quais validam entrada com schema? Quais têm limite de tamanho/paginação?
+- O proxy de capa aceita URL arbitrária ou só hosts conhecidos?
+- Há rate limiting em algum ponto? Há cabeçalhos de segurança/CSP?
+- Alguma chave aparece em código de cliente ou com prefixo `NEXT_PUBLIC_`?
+- Qual é a linha de base de Lighthouse/bundle nas rotas principais?
+- Backups estão ativos e já houve teste de restauração?
+
+---
+
+## 16. Arquitetura pós-MVP
+
+Princípio: **segura, simples e eficaz**. Continuamos com o monólito Next.js + Supabase e **reaproveitamos os padrões já em uso** (Server Components para leitura, Server Actions para escrita, RPCs transacionais no Postgres, RLS). Sem microsserviços, filas ou servidores novos.
+
+```
+Navegador (PWA, mobile-first)
+        │ HTTPS
+Next.js na Vercel ── Server Components (leitura) · Server Actions (escrita)
+        │                 │
+        │                 ├─ lib/musicbrainz   (existente)
+        │                 ├─ lib/lastfm        (novo: só servidor, timeout, Zod)
+        │                 └─ cache: fetch com revalidate (padrão do Discover atual)
+        │
+Supabase (Postgres + Auth + RLS)
+   ├─ PRIVADO:  library_entries, listen_logs                   (RLS: só o dono)
+   ├─ CATÁLOGO: albums, artists, album_links (novo)            (escrita só no servidor)
+   └─ PÚBLICO CONTROLADO (Fase 3): activity_events, follows, view public_profiles
+```
+
+### Decisões
+
+1. **Cache dos dados do Last.fm:** começar com o mecanismo já usado em Discover (`fetch` com `revalidate`, compartilhado pelo Next na hospedagem), não com uma infraestrutura nova. **Regra de promoção:** só criar tabela `external_cache` + cron de atualização se a medição (T8.6) mostrar tela fria > 3 s ou problemas de limite com o Last.fm.
+2. **Vínculos persistentes:** a correspondência item do Last.fm → álbum do MusicBrainz (`album_links`) precisa sobreviver a reinícios; por isso vai para o Postgres, não para memória.
+3. **Streaming por seção** (`<Suspense>`) em vez de endpoints REST novos para "similares" e "em alta".
+4. **Projeções em vez de abrir tabelas privadas:** a parte social lê `activity_events`, nunca `listen_logs`.
+5. **Escrita pelo padrão atual:** novas mutações como Server Actions com Zod, e RPC quando precisarem de transação (como `write_album_diary`).
+6. **Feature flags por variável de ambiente** (`FEATURE_DISCOVER_TRENDING`, `FEATURE_SOCIAL`): código novo entra desligado e é ativado gradualmente.
+7. **Registro de decisões** em `docs/decisions.md`, também útil como contexto para a IA.
+
+### Novas estruturas de dados
+
+```sql
+-- Fase 2: vínculo persistente Last.fm → álbum do SoundAtlas
+album_links (
+  id          uuid primary key,
+  source      text not null,                 -- 'lastfm'
+  source_key  text not null,                 -- mbid ou 'artista||álbum' normalizado
+  album_id    uuid references albums(id),    -- null = tentativa sem sucesso (cache negativo)
+  resolved_at timestamptz not null default now(),
+  unique (source, source_key)
+)
+```
+
+`album_links` é de leitura/escrita **apenas do servidor** (RLS impede acesso direto por usuários). As estruturas da Fase 3 estão na seção 18.
+
+---
+
+## 17. Fase 2 — Discover com álbuns em alta e artistas similares (Last.fm)
+
+> **Planejado.** Nada desta seção está implementado. Tarefas operacionais: Etapa 8 em `docs/tasks.md`.
+
+### 17.1 Objetivo
+
+- Ampliar o **`/discover`** (que hoje mostra lançamentos dos últimos 30 dias via MusicBrainz) com álbuns **em alta**.
+- Ao fim de cada **`/album/[id]`**, exibir álbuns de **artistas similares**.
+
+### 17.2 O que o Last.fm oferece (e não oferece)
+
+Conferido na documentação dos métodos:
+
+- **Não existe** chart global de **álbuns**. Os charts são de artistas, faixas e tags (`chart.getTopArtists`, `chart.getTopTracks`, `chart.getTopTags`, `chart.getHypedArtists`…).
+- **Não existe** método de "álbuns similares". Há `artist.getSimilar`, `artist.getTopAlbums` e `tag.getTopAlbums`.
+
+Logo, "álbuns em alta" é **derivado**:
+
+| Seção do `/discover` | Fonte | Situação |
+|---|---|---|
+| **Lançamentos** (30 dias) | MusicBrainz | Existente |
+| **Artistas em alta** | `chart.getTopArtists` → álbum principal de cada um (`artist.getTopAlbums`, limit 1) | Fase 2 |
+| **Populares em [gênero]** | `tag.getTopAlbums` para os gêneros mais frequentes do usuário (lista curada para quem é novo) | Fase 2 |
+| **Em alta no SoundAtlas** | Agregado de escutas de quem compartilha | Fase 3 |
+| **Atividade da comunidade** | `activity_events` | Fase 3 |
+
+A interface deve dizer "populares/em alta no Last.fm", não "lançamentos". A ordem das seções (por exemplo, *Em alta* acima de *Lançamentos*) é decisão de produto a validar no celular.
+
+**Similares em `/album/[id]`:** `artist.getSimilar` do artista do álbum (por `mbid` quando houver, senão por nome) → até 6 artistas → álbum principal de cada um via `artist.getTopAlbums`. Destaque opcional para o que já está na biblioteca do usuário.
+
+### 17.3 Pontos de atenção (verificar antes de implementar)
+
+- **Identificadores:** itens do Last.fm trazem nome e, às vezes, `mbid` (que pode ser de *release*, não de *release-group*) ou vazio. Daí o **resolvedor** com `album_links`.
+- **Imagens:** capas do Last.fm podem vir vazias ou com placeholder; usar a capa do Cover Art Archive (fluxo `/album/:id/capa` existente) após resolver o álbum, e um fallback visual enquanto isso.
+- **Termos de uso:** conferir regras de cache, atribuição e uso comercial (o Last.fm pede contato prévio para projetos comerciais) e registrar a conclusão em `docs/decisions.md`.
+- **Limite de requisições** não é numericamente publicado: ser conservador (≤ 1–2 req/s) e depender de cache.
+- **Primeira carga fria:** "Artistas em alta" exige ≈ 1 + 12 chamadas; limitar concorrência, usar Suspense e medir (T8.6).
+
+### 17.4 Fluxos
+
+**`/discover`:** cada seção em `<Suspense>` própria. *Lançamentos* não depende do Last.fm. Seções do Last.fm usam cache (`revalidate`: charts ≈ 6 h, álbuns de artista ≈ 24 h) e timeout de ≈ 3 s; falha ou cache vazio → skeleton e depois seção oculta.
+
+**Toque em um card do Last.fm:** Server Action recebe `{artista, título, mbid?}` → resolvedor consulta `album_links`; se não houver, busca no MusicBrainz (normalizando acentos/edições deluxe), aceita só acima de um limiar de similaridade, grava o vínculo (inclusive resultado negativo por ~7 dias) → reutiliza `openAlbum` para persistir o álbum e redirecionar para `/album/[id]`.
+
+**Similares no álbum:** componente de servidor em `<Suspense>` no fim da página; cache de ≈ 14 dias por artista; erro/timeout → bloco oculto. Rate limit nas ações que disparam chamadas externas novas.
+
+### 17.5 Ordem
+
+Etapa 7 (mínimo: T7.0–T7.3) → Etapa 8 (T8.0–T8.6). Detalhes, prompts e critérios de aceite em `docs/tasks.md`.
+
+---
+
+## 18. Fase 3 — Preparação do ambiente e comunicação entre usuários
+
+> **Planejado.** Nada desta seção está implementado. Tarefas operacionais: Etapas 9 e 10 em `docs/tasks.md`.
+
+### 18.1 Escopo
+
+| Parte | Entrega |
+|---|---|
+| **3-prep (Etapa 9)** | Visibilidade/privacidade, `activity_events`, seguir/bloquear/denunciar, exclusão de conta, testes de privacidade, flags |
+| **3a (Etapa 10)** | Seção "Comunidade" no `/discover`, perfis públicos, seguir |
+| **3b** | "Em alta no SoundAtlas", curtidas |
+| **3c** | Comentários curtos |
+
+**Fora de escopo por ora:** mensagens diretas, upload de avatar, menções, notificações push. São os recursos que mais ampliam abuso e superfície de ataque.
+
+### 18.2 Princípios de privacidade
+
+1. **Privado por padrão.** Todos os usuários atuais continuam privados até aceitarem explicitamente.
+2. **Cada campo público é uma decisão:**
+
+| Dado | Compartilhado? |
+|---|---|
+| Álbum, nota, data da escuta | Sim (se o usuário compartilha) |
+| Resenha da biblioteca (`review`) | Sim, só um trecho (opcional) |
+| Comentário do diário (`note`) | **Não**, a menos que o usuário marque como público |
+| E-mail, estatísticas pessoais, identificadores internos | **Nunca** |
+
+3. **Projeção, não exposição:** terceiros leem só `activity_events` e `public_profiles`; `library_entries` e `listen_logs` seguem estritamente privadas.
+4. **Revogável:** desligar o compartilhamento esconde os eventos imediatamente (a RLS consulta o estado atual); excluir a conta apaga tudo.
+5. **Sem vazamento indireto:** perfil privado responde como inexistente (mesmo 404); contagens agregadas só com **k ≥ 3 usuários distintos**.
+6. **Bloqueio vale em todo lugar:** feed, perfis e interações.
+
+### 18.3 Modelo de dados
+
+> Antes de criar, **verifique a tabela que hoje guarda `username`** (a seção 5 cita `users` e triggers de criação de perfil). **Estenda-a** com as colunas abaixo; não crie uma segunda tabela de perfil.
+
+```sql
+-- colunas novas no perfil existente
+visibility      text not null default 'private'
+                check (visibility in ('private','followers','public')),
+share_activity  boolean not null default false,
+display_name    text,
+bio             text check (char_length(bio) <= 160)
+
+follows (
+  follower_id uuid references users(id) on delete cascade,
+  followee_id uuid references users(id) on delete cascade,
+  status      text not null default 'accepted' check (status in ('pending','accepted')),
+  created_at  timestamptz default now(),
+  primary key (follower_id, followee_id),
+  check (follower_id <> followee_id)
+)
+
+blocks (
+  blocker_id uuid references users(id) on delete cascade,
+  blocked_id uuid references users(id) on delete cascade,
+  created_at timestamptz default now(),
+  primary key (blocker_id, blocked_id)
+)
+
+reports (
+  id          uuid primary key,
+  reporter_id uuid references users(id) on delete set null,
+  target_type text not null check (target_type in ('profile','activity','comment')),
+  target_id   uuid not null,
+  reason      text not null,
+  created_at  timestamptz default now()
+)
+
+-- projeção pública: só campos seguros
+activity_events (
+  id           uuid primary key,
+  user_id      uuid references users(id) on delete cascade,
+  log_id       uuid,                         -- origem, para atualizar/remover junto
+  type         text not null check (type in ('listen','rating','review')),
+  album_id     uuid references albums(id),
+  rating       numeric(2,1),
+  excerpt      text check (char_length(excerpt) <= 280),
+  occurred_on  date not null,
+  created_at   timestamptz default now()
+)
+
+create index on activity_events (created_at desc, id desc);
+create index on activity_events (user_id, created_at desc);
+```
+
+**RLS (resumo):**
+- Perfil: o dono lê e edita tudo; terceiros só leem pela view `public_profiles` (campos seguros, respeitando visibilidade e bloqueios).
+- `activity_events`: leitura se o autor tem `share_activity = true` **e** (perfil `public` **ou** leitor seguidor aceito) **e** não há bloqueio entre as partes. Escrita **somente pelo servidor**.
+- `follows`: cada usuário gerencia os seus. `blocks` e `reports`: cada um vê só os seus; denúncias são lidas por você no painel do Supabase.
+
+**Geração de eventos:** feita pelo servidor, **na mesma transação** do diário sempre que possível (estendendo o padrão de `write_album_diary`), copiando apenas campos permitidos. **Editar** um log atualiza o evento; **excluir** remove. Nada de trigger que copie linhas inteiras.
+
+**Paginação do feed:** por cursor (`created_at`, `id`), nunca por `offset` grande.
+
+### 18.4 Ordem
+
+Etapa 7 **completa** → Etapa 9 → Etapa 10. Cada nova tabela ou campo visível a terceiros entra na matriz de testes de privacidade (T9.5). Os testes de RLS rodam contra o Supabase local (como o E2E).
 
 ---
 
@@ -492,6 +812,7 @@ Vitest, Playwright, deploy na Vercel.
 ## Regras gerais
 - Trabalhe em UMA tarefa por vez; faça mudanças pequenas e revisáveis.
 - Antes de concluir, rode lint, typecheck e testes e informe o resultado.
+- Antes de cada commit ou push, execute `npm test` completo (sem filtrar testes) e `npm run lint`. Corrija as falhas antes de prosseguir e informe os resultados; não faça commit ou push com essas verificações falhando.
 - Não instale dependências novas sem justificar.
 - Não altere o schema do banco fora de arquivos de migração versionados.
 - Nunca commite segredos; use .env.local e mantenha .env.example atualizado.
@@ -503,6 +824,19 @@ Vitest, Playwright, deploy na Vercel.
 - `listen_log` = evento do diário; N por álbum; guarda `rating_at_time`.
 - Nota: 0,5 a 5,0 em passos de 0,5.
 - Regras detalhadas: seção 5 do spec.
+
+## Integrações, cache e segurança
+- Last.fm e MusicBrainz: apenas no servidor; telas leem de cache/banco, com `Suspense`
+  e timeout (~3 s) em blocos que dependem de API externa.
+- Toda rota, Server Action e RPC valida entrada (Zod) e deriva o usuário da sessão
+  (`auth.uid()`), nunca de parâmetros do cliente.
+- Toda tabela do schema `public` tem RLS; RPCs `security definer` fixam `search_path`.
+- `library_entries` e `listen_logs` nunca são abertas a terceiros; dados sociais saem por
+  projeções (`activity_events`, `public_profiles`).
+- Todo novo campo visível a outros usuários exige atualizar a matriz de testes de privacidade.
+- Rate limit: contador em armazenamento compartilhado (não em memória do processo).
+- Funcionalidades novas ficam atrás de feature flags (`FEATURE_DISCOVER_TRENDING`, `FEATURE_SOCIAL`).
+- Decisões relevantes vão em `docs/decisions.md`; tarefas em `docs/tasks.md`.
 
 ## UI
 - Mobile-first (360–430px), tema escuro, alvos de toque ≥ 44px.
@@ -527,6 +861,10 @@ Vitest, Playwright, deploy na Vercel.
 - [ ] Testes novos ou atualizados; todos passando?
 - [ ] Sem segredos, `console.log` ou código morto?
 - [ ] Dependências novas justificadas?
+- [ ] Rota, Server Action ou RPC nova valida entrada com Zod, deriva o usuário da sessão e tem rate limit quando dispara chamada externa?
+- [ ] Alguma chamada externa roda dentro da renderização sem `Suspense` e timeout?
+- [ ] Novo campo exposto a terceiros? Está na projeção correta e na matriz de testes de privacidade?
+- [ ] Segredo com prefixo `NEXT_PUBLIC_` ou em código de cliente?
 
 ## Apêndice C — Modelo de prompt para o Codex
 
